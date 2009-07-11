@@ -1,0 +1,1 @@
+jar -cvfm JavaUOWindowClient.jar manifestWindow.mft *.*
