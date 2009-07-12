@@ -21,6 +21,7 @@
 import java.net.*;
 import java.io.*;
 import java.lang.Byte.*;
+import java.util.Collections.*;
 
 public class UONetworking2 implements Runnable
 {
@@ -48,6 +49,7 @@ public class UONetworking2 implements Runnable
 
 	private InputStream in;
 	private OutputStream out;
+        public UOObject drawdata;
 
 	private final byte[] pckFirstPacket = { 0x0F, 0x70, 0x00, 0x01 };
 	private final byte pckLoginreq = (byte)0x80;
@@ -69,10 +71,11 @@ public class UONetworking2 implements Runnable
 	private final byte pckClientWalk = (byte)0x02;
         private final int SMSG_GameServlist = 0xA8;
         private final int CMSG_Loginreq = 0x80;
-        private final int SMSG_MobileIncoming = 0x78;
+        private final int SMSG_DrawObject = 0x78;
         private final int MSG_CharMoveACK = 0x22;
         private final int SMSG_SetWeather = 0x65;
         private final int SMSG_WornItem = 0x2E;
+        private final int SMSG_Deleteobject = 0x1D;
         
 	public UONetworking2(String i, int p, String user, String pass, UOPacketOperation op)
 	{
@@ -204,7 +207,7 @@ public class UONetworking2 implements Runnable
 					if (decompress)	decompressBuffer = BinaryNode.Decompress(buffer);
 					else decompressBuffer = buffer;
 
-					//if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
+					if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
 
 					byte cmd = decompressBuffer[0];
                                         switch (cmd & 0xFF) {
@@ -241,12 +244,12 @@ public class UONetworking2 implements Runnable
                                             case SMSG_SetWeather:
                                                 handleSetWeather(decompressBuffer);
                                                 break;
-                                            case SMSG_WornItem:
+                                           case SMSG_WornItem:
                                                 handleWornItem(decompressBuffer);
                                                 break;
-                                           // case SMSG_MobileIncoming:
-                                             //   handleMobileIncoming(decompressBuffer);
-                                               // break;
+                                           case SMSG_DrawObject:
+                                                handleDrawObject(decompressBuffer);
+                                                break;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd & 0xFF) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" +  Long.toHexString(decompressBuffer[1] & 0xFF) + "-" + Long.toHexString(decompressBuffer[2] & 0xFF)); }
                                         }
 
@@ -278,6 +281,7 @@ public class UONetworking2 implements Runnable
 			}
 			catch (Exception e)
 			{
+                           
 				System.out.println("Some other error in the thread: " + e);
 				e.printStackTrace();
 			}
@@ -291,33 +295,60 @@ public class UONetworking2 implements Runnable
 
         private void handleWornItem(byte buffer[])
         {
+            try {
             byte wornitem[] = new byte[15];
             for (int i = 0; i < wornitem.length; i++)
 			wornitem[i] = buffer[i];
             int itemid = ((wornitem[1] <<24) | (wornitem[2] <<16) | (wornitem[3] <<8) | (wornitem[4]));
             int mobileid = ((wornitem[9] <<24) | (wornitem[10] <<16) | (wornitem[11] <<8) | (wornitem[12]));
+
             if (debug) System.out.println("wormitemid: " + itemid + "MobID: " + mobileid);
-        }
+            }
+            catch(ArrayIndexOutOfBoundsException e)
+		{ System.out.println("Error: Wornitem packet too long: " + e); }
+            }
+
         private void  handleSetWeather(byte buffer[])
         {
          byte weather[] = new byte[4];
          for (int i = 0; i < weather.length; i++)
 			weather[i] = buffer[i];
          int weathertype = weather[1];
-         int weathernum = weather[2];
-        if (debug) System.out.println("It begins to" + Long.toHexString(weathertype & 0xFF));
-        }
-        private void handleCharMoveACK(byte buffer[])
-        {
-            byte Moveack[] = new byte[3];
-            for (int i = 0; i < Moveack.length; i++)
-			Moveack[i] = buffer[i];
-            int iSeq = Moveack[1];
-            int iNot = Moveack[2];
+         //int weathernum = weather[2];
+         switch(weathertype & 0xFF)
+         {
+             case 0:
+                 System.out.println("It begins to rain");
+                 break;
+             case 1:
+                  System.out.println("A Fierce Storm!");
+                 break;
+             case 2:
+                  System.out.println("It begins to snow");
+                 break;
+             case 3:
+                  System.out.println("A Storm is Brewing");
+                 break;
+
+             default:
+                 System.out.println("Unknown weather: " + (weathertype & 0xFF));
+
+         }
 
         }
-        private void handleMobileIncoming(byte buffer[])
+
+        private void handleCharMoveACK(byte buffer[])
         {
+            //byte Moveack[] = new byte[3];
+            //for (int i = 0; i < Moveack.length; i++)
+	//		Moveack[i] = buffer[i];
+          //  int iSeq = Moveack[1];
+           // int iNot = Moveack[2];
+// Do nothing
+        }
+        private void handleDrawObject(byte buffer[])
+        {
+
             int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
             byte incMobile[] = new byte[1];
             try { incMobile = new byte[size]; }
@@ -325,33 +356,16 @@ public class UONetworking2 implements Runnable
 		{ System.out.println("Error: Mobile data too long"); }
             for (int i = 0; i < incMobile.length; i++)
 			incMobile[i] = buffer[i];
-            //int MobID = ((incMobile[4],));
-
-
-            	byte charLoc[] = new byte[37];
-		for (int i = 0; i < charLoc.length; i++)
-			charLoc[i] = buffer[i];
-		playerID = ((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4]));
-		playerX = (((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
-		playerY = (((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
-		playerZ = (((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
-       String chatMsg = "";
-		//int size = (in.read() >>8) | in.read();
-		//int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
-		byte chat[] = new byte[1];
-		try { chat = new byte[size]; }
-		catch(ArrayIndexOutOfBoundsException e)
-		{ System.out.println("Error: Message too long"); }
-		for (int i = 0; i < chat.length; i++)
-			chat[i] = buffer[i];
-
-		String name = "";
-		String msg = "";
-		for (int i = 17; i < 47; i++)
-			if (chat[i] != 0x00) name = name + (char)chat[i];
-		for (int i = 47; i < chat.length; i++)
-			if (chat[i] != 0x00) msg = msg + (char)chat[i];
-		chatMsg = name + ": " + msg;
+            
+             int itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+             int type = ((incMobile[7] <<8) | (incMobile[8]));
+             int itemx = ((incMobile[9] & 0xFF <<8) | (incMobile[10] & 0xFF));
+             int itemy = ((incMobile[11] & 0xFF <<8) | (incMobile[12] & 0xFF));
+             int itemz = 0;
+             int color = 0;
+            drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
+            System.out.println(drawdata.x);
+             System.out.println("Draw Object ID: " + itemid + " type: " + type + "X: " + itemx + "Y: " + itemy);
         }
 
 	private void handleServerList(byte[] buffer)

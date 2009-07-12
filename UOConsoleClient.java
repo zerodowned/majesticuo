@@ -6,8 +6,6 @@
  */
 
 import java.io.*;
-import java.util.LinkedList;
-
 public class UOConsoleClient implements Runnable, UOPacketOperation
 {
 	UONetworking2 uonet;
