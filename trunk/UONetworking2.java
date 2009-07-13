@@ -22,6 +22,10 @@ import java.net.*;
 import java.io.*;
 import java.lang.Byte.*;
 import java.util.Collections.*;
+import java.util.Arrays.*;
+import java.util.Vector;
+import java.util.Vector.*;
+
 
 public class UONetworking2 implements Runnable
 {
@@ -38,11 +42,6 @@ public class UONetworking2 implements Runnable
 	private boolean canSendServer = false;
 	private boolean canSendChar = false;
 
-	private int playerX = 0;
-	private int playerY = 0;
-	private int playerZ = 0;
-	private long playerID = 0;
-
 	private Thread thread;
 	private boolean run = true;
 	private boolean decompress = false;
@@ -50,6 +49,11 @@ public class UONetworking2 implements Runnable
 	private InputStream in;
 	private OutputStream out;
         public UOObject drawdata;
+        Player player = new Player();
+
+
+        //public UOObject[] Listitems = new UOObject[100];
+        public Vector<UOObject> Listitems = new Vector<UOObject>();
 
 	private final byte[] pckFirstPacket = { 0x0F, 0x70, 0x00, 0x01 };
 	private final byte pckLoginreq = (byte)0x80;
@@ -76,7 +80,8 @@ public class UONetworking2 implements Runnable
         private final int SMSG_SetWeather = 0x65;
         private final int SMSG_WornItem = 0x2E;
         private final int SMSG_Deleteobject = 0x1D;
-        
+        private final int SMSG_UpdatePlayer = 0x77;
+
 	public UONetworking2(String i, int p, String user, String pass, UOPacketOperation op)
 	{
 		BinaryNode.CreateTree();
@@ -235,7 +240,7 @@ public class UONetworking2 implements Runnable
                                             case 0x1B:
                                                 handleInitPlayer(decompressBuffer);
                                                 break;
-                                            case 0x77:
+                                            case SMSG_UpdatePlayer:
                                                 handleUpdatePlayer(decompressBuffer);
                                                 break;
                                             case MSG_CharMoveACK:
@@ -346,6 +351,8 @@ public class UONetworking2 implements Runnable
            // int iNot = Moveack[2];
 // Do nothing
         }
+
+
         private void handleDrawObject(byte buffer[])
         {
 
@@ -356,15 +363,18 @@ public class UONetworking2 implements Runnable
 		{ System.out.println("Error: Mobile data too long"); }
             for (int i = 0; i < incMobile.length; i++)
 			incMobile[i] = buffer[i];
-            
              int itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
-             int type = ((incMobile[7] <<8) | (incMobile[8]));
-             int itemx = ((incMobile[9] & 0xFF <<8) | (incMobile[10] & 0xFF));
-             int itemy = ((incMobile[11] & 0xFF <<8) | (incMobile[12] & 0xFF));
-             int itemz = 0;
-             int color = 0;
+             int type = ((incMobile[7] <<8) | (incMobile[8] & 0xFF));
+             int itemx = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
+             int itemy = ((incMobile[11] <<8) | (incMobile[12] & 0xFF));
+             int itemz = incMobile[13];
+             int color = ((incMobile[14] <<8) | (incMobile[15]));
             drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
-            System.out.println(drawdata.x);
+            Listitems.add(drawdata);
+            //UOObject currentobj = Listitems.firstElement();
+            
+            //System.out.println(incMobile[0] + " " + (incMobile[0] & 0xFF));
+            
              System.out.println("Draw Object ID: " + itemid + " type: " + type + "X: " + itemx + "Y: " + itemy);
         }
 
@@ -649,37 +659,46 @@ public class UONetworking2 implements Runnable
 		byte charLoc[] = new byte[37];
 		for (int i = 0; i < charLoc.length; i++)
 			charLoc[i] = buffer[i];
-		playerID = ((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4]));
-		playerX = (((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
-		playerY = (((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
-		playerZ = (((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
-	}
+		player.setserial(((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4])));
+		player.settype((charLoc[9] <<8 | charLoc[10] &0xFF));
+                player.setX(((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
+		player.setY(((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
+		player.setZ(((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
+                //System.out.println("Check if drawdata is in list" + Listitems.(drawdata.serial));
+                //Listitems.add(Char);
+            //UOObject currentobj = Listitems.firstElement();
 
+            //System.out.println(Char);
+
+		//packetOperator.processUpdatePlayer(playerID, model, x, y, z, direction, hue, flag, highlightColor);
+
+	}
+/*
 	public int getX()
 	{
 		int i = 0;
-		while ((playerX == 0) && (playerY == 0) && (playerZ == 0) && (i < 10))
+		while ((Char2.x == 0) && (Char2.x == 0) && (Char2.x == 0) && (i < 10))
 		{
 			try { Thread.sleep(100); } catch (Exception e) {}
 			i++;
 		}
-		return playerX;
+		return Char2.x;
 	}
 
 	public int getY()
 	{
 		//while ((playerX == 0) && (playerY == 0) && (playerZ == 0))
 		//try { Thread.sleep(100); } catch (Exception e) {}
-		return playerY;
+		return Char2.y;
 	}
 
 	public int getZ()
 	{
 		//while ((playerX == 0) && (playerY == 0) && (playerZ == 0))
 		//try { Thread.sleep(100); } catch (Exception e) {}
-		return playerZ;
+		return Char2.z;
 	}
-
+*/
 	private void handleChatPacketAE(byte buffer[])
 	{
 		String chatMsg = "";
@@ -731,6 +750,14 @@ public class UONetworking2 implements Runnable
 		int hue = (buffer[14] & 0xFF) | ((buffer[13] & 0xFF) << 8);
 		int flag = (buffer[15] & 0xFF);
 		int highlightColor = (buffer[16] & 0xFF);
+
+                drawdata = new UOObject(playerID,model,x,y,z,hue);
+                //System.out.println("Check if drawdata is in list" + Listitems.(drawdata.serial));
+                Listitems.add(drawdata);
+            //UOObject currentobj = Listitems.firstElement();
+
+            //System.out.println(incMobile[0] + " " + (incMobile[0] & 0xFF));
+
 		packetOperator.processUpdatePlayer(playerID, model, x, y, z, direction, hue, flag, highlightColor);
 	}
 

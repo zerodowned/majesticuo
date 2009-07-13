@@ -294,9 +294,9 @@ public class UOWindow implements Runnable,
 
 		incomingText("Character Logged ON\n");
 
-		playerX = uonet.getX();
-		playerY = uonet.getY();
-		playerZ = uonet.getZ();
+		playerX = uonet.player.getX();
+		playerY = uonet.player.getY();
+		playerZ = uonet.player.getZ();
 		incomingText("X: " + playerX + " Y: " + playerY + " Z: " + playerZ + " \n");
 		if ((playerX == 0) && (playerY == 0) && (playerZ == 0))
 			JOptionPane.showMessageDialog(null, "Possible error in reading coordinates. \n"

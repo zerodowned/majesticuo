@@ -19,4 +19,5 @@ public interface UOPacketOperation
 	public void processCharList(String[] list);
 	public void processLoggedIn();
 	public void processUpdatePlayer(int playerID, int model, int x, int y, int z, int direction, int hue, int flag, int highlightColor);
+        //public void UpdateChar(Char[]);
 }
