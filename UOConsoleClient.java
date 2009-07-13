@@ -11,8 +11,9 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 	UONetworking2 uonet;
 	Thread thread = new Thread(this, "JavaUOClient: Macro");
 
-	int playerX, playerY, playerZ, playerDirection;
-	int playerID, playerModel, playerHue, playerFlag, playerHighlightColor;
+	//int playerX, playerY, playerZ, playerDirection;
+	//int playerID, playerModel, playerHue, playerFlag, playerHighlightColor;
+        //Player player = uonet.player;
 	QueueLi macros = new QueueLi();
 	boolean run = true;
 
@@ -46,7 +47,7 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 					try { Thread.sleep(500); } catch (Exception ex) {}
 				}
 			}
-			else consoleClient[0] = new UOConsoleClient("");
+                        else consoleClient[0] = new UOConsoleClient("");
 		}
 		catch (Exception e)
 		{
@@ -203,10 +204,13 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 	private void getPlayerCoords()
 	{
 		//while (uonet.getX() == 0) try { Thread.sleep(100); } catch (Exception e) {}
-		playerX = uonet.getX();
-		playerY = uonet.getY();
-		playerZ = uonet.getZ();
-		System.out.println("X: " + playerX + " Y: " + playerY + " Z: " + playerZ);
+		//playerX = uonet.getX();
+		//playerY = uonet.getY();
+		//playerZ = uonet.getZ();
+                //player.setX(playerX) = uonet.player.x;
+                //player.y = uonet.player.y;
+                //player.z = uonet.player.z;
+		System.out.println("X: " + uonet.player.getX() + " Y: " + uonet.player.getY() + " Z: " + uonet.player.getZ());
 	}
 
 	private void getPlayerStats()
