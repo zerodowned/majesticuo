@@ -51,10 +51,12 @@ public class UONetworking2 implements Runnable
         public UOObject drawdata;
         Player player = new Player();
 
+        public Vector Listitemsindex = new Vector();
 
+        //public Vector<int> Listitemsindex = new Vector<int>();
         //public UOObject[] Listitems = new UOObject[100];
         public Vector<UOObject> Listitems = new Vector<UOObject>();
-
+        public byte pingstep = 0;
 	private final byte[] pckFirstPacket = { 0x0F, 0x70, 0x00, 0x01 };
 	private final byte pckLoginreq = (byte)0x80;
 	private final byte pckGameServList = (byte)0xA8;
@@ -81,6 +83,11 @@ public class UONetworking2 implements Runnable
         private final int SMSG_WornItem = 0x2E;
         private final int SMSG_Deleteobject = 0x1D;
         private final int SMSG_UpdatePlayer = 0x77;
+        public final int MSG_PingMessage = 0x73;
+
+         public native void LoginCryptInit();
+    //public native void LoginCryptEncrypt();
+    //public native void Compress(byte Dest[],byte source[], int destsize, int srcsize);
 
 	public UONetworking2(String i, int p, String user, String pass, UOPacketOperation op)
 	{
@@ -92,7 +99,9 @@ public class UONetworking2 implements Runnable
 		packetOperator = op;
 		thread = new Thread(this, "JavaUOClient: Networking");
 	}
-
+        public void passwrite(byte buffer[]) {
+                write(buffer);
+        }
 	private void write(byte buffer[])
 	{
 		if (!client.isConnected())
@@ -255,6 +264,9 @@ public class UONetworking2 implements Runnable
                                            case SMSG_DrawObject:
                                                 handleDrawObject(decompressBuffer);
                                                 break;
+                                            case MSG_PingMessage:
+                                                handlePingMessage(decompressBuffer);
+                                                break;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd & 0xFF) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" +  Long.toHexString(decompressBuffer[1] & 0xFF) + "-" + Long.toHexString(decompressBuffer[2] & 0xFF)); }
                                         }
 
@@ -297,7 +309,12 @@ public class UONetworking2 implements Runnable
 	{
 		run = false;
 	}
-
+        private void handlePingMessage(byte buffer[]) {
+            byte myping[] = new byte[2];
+            for(int i = 0; i < myping.length; i++)
+                myping[i] = buffer[i];
+            pingstep = myping[1];
+        }
         private void handleWornItem(byte buffer[])
         {
             try {
@@ -320,6 +337,7 @@ public class UONetworking2 implements Runnable
 			weather[i] = buffer[i];
          int weathertype = weather[1];
          //int weathernum = weather[2];
+
          switch(weathertype & 0xFF)
          {
              case 0:
@@ -334,6 +352,8 @@ public class UONetworking2 implements Runnable
              case 3:
                   System.out.println("A Storm is Brewing");
                  break;
+             case 254:
+                 System.out.println("0xFE recived unknown weather");
 
              default:
                  System.out.println("Unknown weather: " + (weathertype & 0xFF));
@@ -355,7 +375,7 @@ public class UONetworking2 implements Runnable
 
         private void handleDrawObject(byte buffer[])
         {
-
+            boolean myresult = true;
             int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
             byte incMobile[] = new byte[1];
             try { incMobile = new byte[size]; }
@@ -369,8 +389,20 @@ public class UONetworking2 implements Runnable
              int itemy = ((incMobile[11] <<8) | (incMobile[12] & 0xFF));
              int itemz = incMobile[13];
              int color = ((incMobile[14] <<8) | (incMobile[15]));
-            drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
-            Listitems.add(drawdata);
+             // store the id in a 2nd array, if the id is found we update the data, if not we replace
+            for (int i = 0; i < Listitemsindex.size(); i++) {
+                if (itemid == Listitemsindex.get(i)) {
+                drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
+                Listitems.set(i,drawdata);
+                myresult = false;
+                break;
+                }
+            }
+             if (myresult) {
+                 Listitemsindex.add(itemid);
+                 Listitems.add(drawdata);
+             }
+
             //UOObject currentobj = Listitems.firstElement();
             
             //System.out.println(incMobile[0] + " " + (incMobile[0] & 0xFF));
@@ -648,6 +680,8 @@ public class UONetworking2 implements Runnable
 		}
 		write(skillPacket);
 	}
+
+
 	private void handleInitPlayer(byte buffer[])
 	{
 		handleCharLoc(buffer);
@@ -804,4 +838,5 @@ public class UONetworking2 implements Runnable
 			byteAr[i] = (byte)charAr[i];
 		return byteAr;
 	}
+
 }

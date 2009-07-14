@@ -6,11 +6,15 @@
  */
 
 import java.io.*;
+import java.util.Timer;
+import java.util.TimerTask;
 public class UOConsoleClient implements Runnable, UOPacketOperation
 {
+    Timer pingtimer;
 	UONetworking2 uonet;
 	Thread thread = new Thread(this, "JavaUOClient: Macro");
-
+        //Runnable myping = new sendping();
+        //Thread pingthread = new Thread(myping);
 	//int playerX, playerY, playerZ, playerDirection;
 	//int playerID, playerModel, playerHue, playerFlag, playerHighlightColor;
         //Player player = uonet.player;
@@ -25,6 +29,8 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 
 	public static void main(String args[])
 	{
+
+
 		System.out.println("Console Java UO Client\n");
 		System.out.println("http://mikelduke.sourceforge.net");
 		UOConsoleClient consoleClient[] = new UOConsoleClient[1];
@@ -102,6 +108,12 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			BufferedReader br;
 			fromFile = false;
 			br = new BufferedReader(new InputStreamReader(System.in));
+
+
+                        ip = "24.89.90.235";
+                        port = 2594;
+                        user = "calis";
+                        pass= "junk2";
                         ip = "localhost";
                         port = 2593;
                         user = "admin";
@@ -129,6 +141,9 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			try
 			{
 				uonet.connect();
+                                // dark ping timer
+                                pingtimer = new Timer();
+                                pingtimer.scheduleAtFixedRate(new sendping(), 10000, 10000);
 				enterCommand();
 			}
 			catch (Exception e)
@@ -189,12 +204,16 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			System.out.println("number of steps is optional");
 			System.out.println("skill skillname uses the skill, so far only hiding");
 		}
+                else if(command.equals("ping")) {
+                    
+                    //pingthread.start();
+                }
 		else
 		{
 			uonet.say(command);
 		}
 	}
-
+       
 	public void clearConsole()
 	{
 		for (int i = 0; i < 100; i++)
@@ -371,6 +390,19 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 	{
 		System.out.println(e);
 	}
+class sendping extends TimerTask {
+        public void run() {
+        // DarkLotus
+        //thread = new Thread(this, "JavaUOClient: Networking");
+       byte pingpacket[] = new byte[2];
+                    pingpacket[0] = (byte)0x73;
+                    pingpacket[1] = 0;
+                    uonet.passwrite(pingpacket);
+               //throw new UnsupportedOperationException("Not supported yet.");
+    }
+}
+
+
 }
 
 class MacroAction
@@ -394,3 +426,5 @@ class MacroAction
 		return delay;
 	}
 }
+
+
