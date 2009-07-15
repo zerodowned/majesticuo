@@ -145,7 +145,7 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 				uonet.connect();
                                 // dark ping timer
                                 pingtimer = new Timer();
-                                pingtimer.scheduleAtFixedRate(new sendping(), 10000, 10000);
+                                pingtimer.scheduleAtFixedRate(new sendping(), 30000, 30000);
 				enterCommand();
 			}
 			catch (Exception e)
@@ -206,9 +206,9 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			System.out.println("number of steps is optional");
 			System.out.println("skill skillname uses the skill, so far only hiding");
 		}
-                else if(command.equals("ping")) {
-                    
-                    //pingthread.start();
+                else if(commandSplit[0].equalsIgnoreCase("useobject")) {
+                    int mytemp = Integer.parseInt(commandSplit[1]);
+                    uonet.useobject(mytemp);
                 }
 		else
 		{
@@ -231,7 +231,7 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
                 //player.setX(playerX) = uonet.player.x;
                 //player.y = uonet.player.y;
                 //player.z = uonet.player.z;
-		System.out.println("X: " + uonet.player.getX() + " Y: " + uonet.player.getY() + " Z: " + uonet.player.getZ());
+		System.out.println("ID: " + uonet.player.getserial() + "X: " + uonet.player.getX() + " Y: " + uonet.player.getY() + " Z: " + uonet.player.getZ());
 	}
 
 	private void getPlayerStats()

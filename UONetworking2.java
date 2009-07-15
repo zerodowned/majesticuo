@@ -89,7 +89,8 @@ public class UONetworking2 implements Runnable
         private final int SMSG_WornItem = 0x2E;
         private final int SMSG_Deleteobject = 0x1D;
         private final int SMSG_UpdatePlayer = 0x77;
-        public final int MSG_PingMessage = 0x73;
+        private final int MSG_PingMessage = 0x73;
+        private final int CMSG_DoubleClick = 0x06;
 
          public native void LoginCryptInit();
     //public native void LoginCryptEncrypt();
@@ -679,7 +680,29 @@ public class UONetworking2 implements Runnable
 		}
 		return true;
 	}
+        public void useobject(int Itemid) {
+           try {
+                byte pckuse[] = new byte[5];
+            pckuse[0] = CMSG_DoubleClick;
+            byte temp[] = intToByteArray(Itemid);
+            pckuse[1] = temp[0];
+            pckuse[2] = temp[1];
+            pckuse[3] = temp[2];
+            pckuse[4] = temp[3];
+            write(pckuse);
+           }
+           catch (Exception e){
+               System.out.println("Use Object failed: " + e);
+           }
 
+        }
+        public static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
+}
 	public void useSkill(String var1, String var2)
 	{
 		byte skillPacket[] = new byte[9];
