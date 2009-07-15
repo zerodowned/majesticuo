@@ -1,6 +1,11 @@
 /*
  * UONetworking2 class Created by Mikel Duke
  * http://mikelduke.sf.net
+ * Underlying UONetwork code has been taken, connecting, grabbing packets and decompression
+ * Modified by James Kidd
+ * Packet handling, as well as all packet events not relating to server connection and login
+ *
+ * Packet handling and events
  *
  * Rewritten version of the old UONetworking -
  * I had to extend the UOPacketOperation class to make it
@@ -16,6 +21,7 @@
  * to this when using new. This allows the other class to do what
  * it likes with the data recieved in the packets, and acts like
  * the actionListeners in the Java API.
+ *
  */
 
 import java.net.*;
@@ -267,6 +273,9 @@ public class UONetworking2 implements Runnable
                                             case MSG_PingMessage:
                                                 handlePingMessage(decompressBuffer);
                                                 break;
+                                            case SMSG_Deleteobject:
+                                                handleDeleteobject(decompressBuffer);
+                                                break;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd & 0xFF) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" +  Long.toHexString(decompressBuffer[1] & 0xFF) + "-" + Long.toHexString(decompressBuffer[2] & 0xFF)); }
                                         }
 
@@ -309,6 +318,27 @@ public class UONetworking2 implements Runnable
 	{
 		run = false;
 	}
+        private void handleDeleteobject(byte buffer[]) {
+            Boolean myresult = true;
+            byte myobj[] = new byte[5];
+             for(int i = 0; i < myobj.length; i++)
+                myobj[i] = buffer[i];
+            int itemid = (( myobj[1] <<24) | ( myobj[2] <<16) | ( myobj[3] <<8) | ( myobj[4]));
+             for (int i = 0; i < Listitemsindex.size(); i++) {
+                if (itemid == Listitemsindex.get(i)) {
+               Listitemsindex.remove(i);
+                Listitems.remove(i);
+                myresult = false;
+                break;
+                }
+            }
+             if (myresult) {
+                 if (debug) System.out.println("Object delete ignored, not found" + printPacketHex(myobj) + "\n\n");
+
+             }
+
+
+        }
         private void handlePingMessage(byte buffer[]) {
             byte myping[] = new byte[2];
             for(int i = 0; i < myping.length; i++)
@@ -775,7 +805,8 @@ public class UONetworking2 implements Runnable
 
 	private void handleUpdatePlayer(byte buffer[])
 	{
-		int playerID = (buffer[4] & 0xFF) | ((buffer[3] & 0xFF) << 8) | ((buffer[2] & 0xFF) << 16) | ((buffer[1] & 0xFF) << 24);
+                Boolean myresult = true;
+                int itemid = (buffer[4] & 0xFF) | ((buffer[3] & 0xFF) << 8) | ((buffer[2] & 0xFF) << 16) | ((buffer[1] & 0xFF) << 24);
 		int model = (buffer[6] & 0xFF) | ((buffer[5] & 0xFF) << 8);
 		int x = (buffer[8] & 0xFF) | ((buffer[7] & 0xFF) << 8);
 		int y = (buffer[10] & 0xFF) | ((buffer[9] & 0xFF) << 8);
@@ -784,15 +815,29 @@ public class UONetworking2 implements Runnable
 		int hue = (buffer[14] & 0xFF) | ((buffer[13] & 0xFF) << 8);
 		int flag = (buffer[15] & 0xFF);
 		int highlightColor = (buffer[16] & 0xFF);
+for (int i = 0; i < Listitemsindex.size(); i++) {
+                
+                if (itemid == Listitemsindex.get(i)) {
+                drawdata = new UOObject(itemid,model,x,y,z,hue);
+                Listitems.set(i,drawdata);
+                myresult = false;
+                break;
+                }
+            }
+             if (myresult) {
+                 Listitemsindex.add(itemid);
+                 Listitems.add(drawdata);
+             }
+             if (itemid == player.getserial()) {
+                 player.setX(x);
+                 player.setY(y);
+                 player.setZ(z);
+             }
 
-                drawdata = new UOObject(playerID,model,x,y,z,hue);
-                //System.out.println("Check if drawdata is in list" + Listitems.(drawdata.serial));
-                Listitems.add(drawdata);
-            //UOObject currentobj = Listitems.firstElement();
 
-            //System.out.println(incMobile[0] + " " + (incMobile[0] & 0xFF));
+               
 
-		packetOperator.processUpdatePlayer(playerID, model, x, y, z, direction, hue, flag, highlightColor);
+		packetOperator.processUpdatePlayer(itemid, model, x, y, z, direction, hue, flag, highlightColor);
 	}
 
 	public static String printPacket(char buffer[])
