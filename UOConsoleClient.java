@@ -1,8 +1,10 @@
 /*
  * UOConsoleClient created by Mikel Duke
  * http://mikelduke.sf.net
+ * Base class with user input and connection with macro support
  *
- * This is a Java UO Client for the Console
+ Modified by James Kidd
+ * Everything apart from above mentioned
  */
 
 import java.io.*;
@@ -384,6 +386,7 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 		playerFlag = flag;
 		playerHighlightColor = highlightColor;
 		System.out.println("X: " + playerX + " Y: " + playerY + " Z: " + playerZ);*/
+            System.out.println("X: " + uonet.player.getX() + " Y: " + uonet.player.getY());
 	}
 
 	public void error(Exception e)
