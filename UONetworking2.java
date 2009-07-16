@@ -92,9 +92,11 @@ public class UONetworking2 implements Runnable
         private final int MSG_PingMessage = 0x73;
         private final int CMSG_DoubleClick = 0x06;
 private final int SMSG_CharLocAndBody = 0x1B;
-        private final int SMSG_OverallLightLevel = 0x4f;
+        private final int SMSG_OverallLightLevel = 0x4F;
         private final int CMSG_SingleClick = 0x09;
         private final int CMSG_PickUpItem = 0x07;
+        private final int CMSG_DropItem = 0x08;
+        private final int SMSG_ObjectInfo = 0x1A;
          public native void LoginCryptInit();
     //public native void LoginCryptEncrypt();
     //public native void Compress(byte Dest[],byte source[], int destsize, int srcsize);
@@ -283,7 +285,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                             case SMSG_OverallLightLevel:
                                                 handleOverallLightLevel(decompressBuffer);
                                                 break;
-                                            default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd & 0xFF) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" +  Long.toHexString(decompressBuffer[1] & 0xFF) + "-" + Long.toHexString(decompressBuffer[2] & 0xFF)); }
+                                            case SMSG_ObjectInfo:
+                                                handleObjectInfo(decompressBuffer);
+                                                break;
+                                            default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" ); }
                                         }
 
 					
@@ -414,10 +419,70 @@ private final int SMSG_CharLocAndBody = 0x1B;
            // int iNot = Moveack[2];
 // Do nothing
         }
+        private void handleObjectInfo(byte buffer[]) {
 
+
+            boolean myresult = true;
+            int offset = 0;
+            int direction = 0;
+            int stack = 0;
+            int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
+            byte incMobile[] = new byte[1];
+            try { incMobile = new byte[size]; }
+		catch(ArrayIndexOutOfBoundsException e)
+		{ System.out.println("Error: Mobile data too long"); }
+            for (int i = 0; i < incMobile.length; i++)
+			incMobile[i] = buffer[i];
+             long itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+             int type = (buffer[7] << 8) | (buffer[8] & 0xFF);
+             if ((itemid & 0x80000000) == 0x80000000) {
+                 stack = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
+             offset = offset + 2;
+             }
+             if ((type & 0x8000) == 0x8000) {
+                 offset = offset + 1;
+             }
+            int itemx = ((incMobile[9 + offset] <<8) | (incMobile[10 + offset] & 0xFF));
+int temp = (incMobile[11 + offset] & 0xF);
+
+             int itemy = ((temp << 8) | (incMobile[12 + offset] & 0xFF));
+             
+             if ((itemx & 0x8000) == 0x8000) {
+                 direction = incMobile[13 + offset];
+                 offset = offset + 1;
+             }
+             int itemz = incMobile[13 + offset];
+             int hue = 0;
+             if ((itemy & 0x8000) == 0x8000) {
+                 hue = ((incMobile[14 + offset] <<8) | (incMobile[15 + offset] & 0xFF));
+             offset = offset + 2;
+             }
+             int flags = 0;
+             if ((itemy & 0x4000) == 0x4000) {
+                 flags = incMobile[14 + offset];
+             }
+             //drawdata = new UOObject(itemid,type,itemx,itemy,itemz,hue);
+                for (int i = 0; i < Listitemsindex.size(); i++) {
+                if (itemid == Listitemsindex.get(i)) {
+
+                Listitems.set(i,drawdata);
+                myresult = false;
+                break;
+                }
+            }
+             if (myresult) {
+                 Listitemsindex.add(itemid);
+                 Listitems.add(drawdata);
+             }
+             //System,out.println("Y: " (incMobile[]));
+            System.out.println("Object Info ID: " + itemid + " type: " + type + "X: " + itemx + "Y: " + itemy + " Hue: " + hue + " Flags: " + flags);
+
+        }
 
         private void handleDrawObject(byte buffer[])
         {
+            // Draw object really means draw mobile
+            // May want to move mobiles to their own list? rather than item list
             boolean myresult = true;
             int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
             byte incMobile[] = new byte[1];
@@ -433,9 +498,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
              int itemz = incMobile[13];
              int color = ((incMobile[14] <<8) | (incMobile[15]));
              // store the id in a 2nd array, if the id is found we update the data, if not we replace
-            for (int i = 0; i < Listitemsindex.size(); i++) {
+            drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
+             for (int i = 0; i < Listitemsindex.size(); i++) {
                 if (itemid == Listitemsindex.get(i)) {
-                drawdata = new UOObject(itemid,type,itemx,itemy,itemz,color);
+                
                 Listitems.set(i,drawdata);
                 myresult = false;
                 break;
@@ -692,11 +758,28 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		}
 		return true;
 	}
+        public void dropg(int itemid, int x, int y, int z) {
+            byte drop[] = new byte[14];
+            drop[0] = CMSG_DropItem;
+            byte temp[] = intToByteArray(itemid);
+            drop[1] = temp[0];
+            drop[2] = temp[1];
+            drop[3] = temp[2];
+            drop[4] = temp[3];
+            byte temp2[] = intToByteArray2(x);
+            drop[5] = temp2[0];
+            drop[6] = temp2[1];
+            byte temp3[] = intToByteArray2(y);
+            drop[7] = temp3[0];
+            drop[8] = temp3[1];
+            drop[9] = (byte)z;
+            write(drop);
+        }
         public void drag(int itemid, int stacksize) {
             byte drag[] = new byte[7];
             drag[0] = CMSG_PickUpItem;
             byte temp[] = intToByteArray(itemid);
-            byte temp2[] = intToByteArray(stacksize);
+            byte temp2[] = intToByteArray2(stacksize);
             drag[1] = temp[0];
             drag[2] = temp[1];
             drag[3] = temp[2];
@@ -736,6 +819,11 @@ private final int SMSG_CharLocAndBody = 0x1B;
                System.out.println("Use Object failed: " + e);
            }
 
+        }
+        public static final byte[] intToByteArray2(int value) {
+            return new byte[] {
+                (byte)(value >>> 8),
+                (byte)(value)};
         }
         public static final byte[] intToByteArray(int value) {
         return new byte[] {
@@ -879,10 +967,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		int hue = (buffer[14] & 0xFF) | ((buffer[13] & 0xFF) << 8);
 		int flag = (buffer[15] & 0xFF);
 		int highlightColor = (buffer[16] & 0xFF);
-for (int i = 0; i < Listitemsindex.size(); i++) {
-                
+                 drawdata = new UOObject(itemid,model,x,y,z,hue);
+                for (int i = 0; i < Listitemsindex.size(); i++) {
                 if (itemid == Listitemsindex.get(i)) {
-                drawdata = new UOObject(itemid,model,x,y,z,hue);
+               
                 Listitems.set(i,drawdata);
                 myresult = false;
                 break;
@@ -898,7 +986,7 @@ for (int i = 0; i < Listitemsindex.size(); i++) {
                  player.setZ(z);
                  packetOperator.processUpdatePlayer(itemid, model, x, y, z, direction, hue, flag, highlightColor);
              }
-
+System.out.println("Update Player ID: " + itemid + " type: " + model + "X: " + x + "Y: " + y + " Hue: " + hue + " Flags: " + flag);
 
                
 
