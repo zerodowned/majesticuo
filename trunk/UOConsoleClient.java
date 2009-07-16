@@ -5,6 +5,12 @@
  *
  Modified by James Kidd
  * Everything apart from above mentioned
+ * uonet.
+ * useskill(n,n)
+ * useobject(id)
+ * singleclick(id)
+ * walk(dir)
+ *
  */
 
 import java.io.*;

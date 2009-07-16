@@ -1,1 +1,1 @@
-jar -cvfm JavaUOWindowClient.jar manifestWindow.mft *.*
+jar -cvfm JavaUOConsoleClient.jar manifestConsole.mft *.*

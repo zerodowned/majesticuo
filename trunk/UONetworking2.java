@@ -91,7 +91,10 @@ public class UONetworking2 implements Runnable
         private final int SMSG_UpdatePlayer = 0x77;
         private final int MSG_PingMessage = 0x73;
         private final int CMSG_DoubleClick = 0x06;
-
+private final int SMSG_CharLocAndBody = 0x1B;
+        private final int SMSG_OverallLightLevel = 0x4f;
+        private final int CMSG_SingleClick = 0x09;
+        private final int CMSG_PickUpItem = 0x07;
          public native void LoginCryptInit();
     //public native void LoginCryptEncrypt();
     //public native void Compress(byte Dest[],byte source[], int destsize, int srcsize);
@@ -253,7 +256,7 @@ public class UONetworking2 implements Runnable
                                             case 0x1C:
                                                 handleChatPacket1C(decompressBuffer);
                                                 break;
-                                            case 0x1B:
+                                            case SMSG_CharLocAndBody:
                                                 handleInitPlayer(decompressBuffer);
                                                 break;
                                             case SMSG_UpdatePlayer:
@@ -277,6 +280,9 @@ public class UONetworking2 implements Runnable
                                             case SMSG_Deleteobject:
                                                 handleDeleteobject(decompressBuffer);
                                                 break;
+                                            case SMSG_OverallLightLevel:
+                                                handleOverallLightLevel(decompressBuffer);
+                                                break;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd & 0xFF) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" +  Long.toHexString(decompressBuffer[1] & 0xFF) + "-" + Long.toHexString(decompressBuffer[2] & 0xFF)); }
                                         }
 
@@ -287,7 +293,7 @@ public class UONetworking2 implements Runnable
 					System.err.println("Disconnected");
 					packetOperator.processDisconnect();
 				}
-				thread.sleep(5);
+				thread.sleep(2);
 			}
 			catch (SocketException e)
 			{
@@ -319,6 +325,11 @@ public class UONetworking2 implements Runnable
 	{
 		run = false;
 	}
+
+        private void handleOverallLightLevel(byte buffer[]){
+            // do nothing
+        }
+
         private void handleDeleteobject(byte buffer[]) {
             Boolean myresult = true;
             byte myobj[] = new byte[5];
@@ -330,6 +341,7 @@ public class UONetworking2 implements Runnable
                Listitemsindex.remove(i);
                 Listitems.remove(i);
                 myresult = false;
+                 if (debug) System.out.println("Object deleted " + printPacketHex(myobj) + "\n");
                 break;
                 }
             }
@@ -680,6 +692,35 @@ public class UONetworking2 implements Runnable
 		}
 		return true;
 	}
+        public void drag(int itemid, int stacksize) {
+            byte drag[] = new byte[7];
+            drag[0] = CMSG_PickUpItem;
+            byte temp[] = intToByteArray(itemid);
+            byte temp2[] = intToByteArray(stacksize);
+            drag[1] = temp[0];
+            drag[2] = temp[1];
+            drag[3] = temp[2];
+            drag[4] = temp[3];
+            drag[5] = temp2[0];
+            drag[6] = temp2[1];
+            write(drag);
+
+        }
+        public void singleclick(int itemid) {
+                       try {
+                byte pckuse[] = new byte[5];
+            pckuse[0] = CMSG_SingleClick;
+            byte temp[] = intToByteArray(itemid);
+            pckuse[1] = temp[0];
+            pckuse[2] = temp[1];
+            pckuse[3] = temp[2];
+            pckuse[4] = temp[3];
+            write(pckuse);
+           }
+           catch (Exception e){
+               System.out.println("Single Click failed: " + e);
+           }
+        }
         public void useobject(int Itemid) {
            try {
                 byte pckuse[] = new byte[5];
@@ -855,12 +896,13 @@ for (int i = 0; i < Listitemsindex.size(); i++) {
                  player.setX(x);
                  player.setY(y);
                  player.setZ(z);
+                 packetOperator.processUpdatePlayer(itemid, model, x, y, z, direction, hue, flag, highlightColor);
              }
 
 
                
 
-		packetOperator.processUpdatePlayer(itemid, model, x, y, z, direction, hue, flag, highlightColor);
+		
 	}
 
 	public static String printPacket(char buffer[])
