@@ -124,8 +124,8 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
                         pass= "junk2";
                         ip = "localhost";
                         port = 2593;
-                        user = "admin";
-                        pass= "admin";
+                        user = "calis";
+                        pass= "junk2";
 			//System.out.print("Enter Server IP: ");
 			//try	{ ip = br.readLine(); }
 			//catch (Exception e)	{	System.out.println("Error Getting Input: " + e); System.exit(1); }
@@ -215,6 +215,22 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
                 else if(commandSplit[0].equalsIgnoreCase("useobject")) {
                     int mytemp = Integer.parseInt(commandSplit[1]);
                     uonet.useobject(mytemp);
+                }
+                 else if(commandSplit[0].equalsIgnoreCase("clickobject")) {
+                    int mytemp = Integer.parseInt(commandSplit[1]);
+                    uonet.singleclick(mytemp);
+                }
+                 else if(commandSplit[0].equalsIgnoreCase("drag")) {
+                    int mytemp = Integer.parseInt(commandSplit[1]);
+                    int mytemp2 = Integer.parseInt(commandSplit[2]);
+                    uonet.drag(mytemp,mytemp2);
+                }
+                    else if(commandSplit[0].equalsIgnoreCase("dropg")) {
+                    int mytemp = Integer.parseInt(commandSplit[1]);
+                    int mytemp2 = Integer.parseInt(commandSplit[2]);
+                    int mytemp3 = Integer.parseInt(commandSplit[3]);
+                    int mytemp4 = Integer.parseInt(commandSplit[4]);
+                    uonet.dropg(mytemp,mytemp2,mytemp3,mytemp4);
                 }
 		else
 		{
