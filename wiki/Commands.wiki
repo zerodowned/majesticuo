@@ -1,0 +1,12 @@
+#summary One-sentence summary of this page.
+
+Command line commands.
+
+
+= Details =
+
+useobject nID
+useskill nSkillnumber nZero
+singleclick nID
+walk n 3 Where n is direction and 3 is steps to take
+quit
