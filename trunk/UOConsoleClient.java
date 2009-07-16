@@ -118,14 +118,11 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			br = new BufferedReader(new InputStreamReader(System.in));
 
 
-                        ip = "24.89.90.235";
-                        port = 2594;
-                        user = "calis";
-                        pass= "junk2";
+
                         ip = "localhost";
                         port = 2593;
-                        user = "calis";
-                        pass= "junk2";
+                        user = "";
+                        pass= "";
 			//System.out.print("Enter Server IP: ");
 			//try	{ ip = br.readLine(); }
 			//catch (Exception e)	{	System.out.println("Error Getting Input: " + e); System.exit(1); }
