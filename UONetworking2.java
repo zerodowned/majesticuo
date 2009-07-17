@@ -31,6 +31,7 @@ import java.util.Collections.*;
 import java.util.Arrays.*;
 import java.util.Vector;
 import java.util.Vector.*;
+import java.lang.String;
 
 
 public class UONetworking2 implements Runnable
@@ -97,6 +98,9 @@ private final int SMSG_CharLocAndBody = 0x1B;
         private final int CMSG_PickUpItem = 0x07;
         private final int CMSG_DropItem = 0x08;
         private final int SMSG_ObjectInfo = 0x1A;
+        private final int SMSG_StatusBarInfo = 0x11;
+        private final int CMSG_GetPlayerStatus = 0x34;
+        private final int SMSG_DrawGamePlayer = 0x20;
          public native void LoginCryptInit();
     //public native void LoginCryptEncrypt();
     //public native void Compress(byte Dest[],byte source[], int destsize, int srcsize);
@@ -288,6 +292,12 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                             case SMSG_ObjectInfo:
                                                 handleObjectInfo(decompressBuffer);
                                                 break;
+                                            case SMSG_StatusBarInfo:
+                                                handleStatusBarInfo(decompressBuffer);
+                                                break;
+                                            case SMSG_DrawGamePlayer:
+                                                handleDrawGamePlayer(decompressBuffer);
+                                                    break;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" ); }
                                         }
 
@@ -334,7 +344,44 @@ private final int SMSG_CharLocAndBody = 0x1B;
         private void handleOverallLightLevel(byte buffer[]){
             // do nothing
         }
+        private void handleStatusBarInfo(byte buffer[]) {
+         int size = ((buffer[1] & 0xFF) <<8) | (buffer[2] & 0xFF);
+            byte status[] = new byte[1];
+            try { status = new byte[size]; }
+		catch(ArrayIndexOutOfBoundsException e)
+		{ System.out.println("Error: Mobile data too long"); }
+            for (int i = 0; i < status.length; i++)
+			status[i] = buffer[i];
+            player.setserial((( status[3] <<24) | ( status[4] <<16) | ( status[5] <<8) | ( status[6])));
+            byte myname[] = new byte[30];
+            for (int i = 0; i < myname.length; i++) {
+                myname[i] = status[i+7];
+            }
+            player.name = new String(myname); // need to remove trailing spaces
+            player.curhp = ((status[37] <<8) | (status[38] & 0xFF));
+            player.maxhp = ((status[39] <<8) | (status[40] & 0xFF));
+            int statusflag = status[41];
+            player.sex = status[42];
+            player.str = ((status[43] <<8) | (status[44] & 0xFF));
+            player.dex = ((status[45] <<8) | (status[46] & 0xFF));
+            player.intel = ((status[47] <<8) | (status[48] & 0xFF));
+            player.curstam = ((status[49] <<8) | (status[50] & 0xFF));
+            player.maxstam = ((status[51] <<8) | (status[52] & 0xFF));
+            player.curmana = ((status[53] <<8) | (status[54] & 0xFF));
+            player.maxmana = ((status[55] <<8) | (status[56] & 0xFF));
+            player.gold = ((status[57] <<8) | (status[58] & 0xFF));
+            int armor = ((status[59] <<8) | (status[60] & 0xFF));
+            player.weight = ((status[61] <<8) | (status[62] & 0xFF));
+            if (statusflag > 4) {
+                player.maxweight = ((status[63] <<8) | (status[64] & 0xFF));
+            }
 
+
+
+      if (debug) System.out.println("Status Update ID:" + player.getserial() + " Name: " + player.name + " Cur HP: " + player.curhp + "Weight: " + player.weight + "max: " + player.maxweight + "\n");
+
+
+        }
         private void handleDeleteobject(byte buffer[]) {
             Boolean myresult = true;
             byte myobj[] = new byte[5];
@@ -366,13 +413,31 @@ private final int SMSG_CharLocAndBody = 0x1B;
         private void handleWornItem(byte buffer[])
         {
             try {
-            byte wornitem[] = new byte[15];
+           Boolean myresult = true;
+                byte wornitem[] = new byte[15];
             for (int i = 0; i < wornitem.length; i++)
 			wornitem[i] = buffer[i];
             int itemid = ((wornitem[1] <<24) | (wornitem[2] <<16) | (wornitem[3] <<8) | (wornitem[4]));
             int mobileid = ((wornitem[9] <<24) | (wornitem[10] <<16) | (wornitem[11] <<8) | (wornitem[12]));
-
+            int itemx = 0;
+            int itemy = 0;
+            int itemz = 0;
+            int hue = 0;
+            int type = 0;
             if (debug) System.out.println("wormitemid: " + itemid + "MobID: " + mobileid);
+             drawdata = new UOObject(itemid,type,itemx,itemy,itemz,hue);
+                for (int i = 0; i < Listitemsindex.size(); i++) {
+                if (itemid == Listitemsindex.get(i)) {
+
+                Listitems.set(i,drawdata);
+                myresult = false;
+                break;
+                }
+            }
+             if (myresult) {
+                 Listitemsindex.add(itemid);
+                 Listitems.add(drawdata);
+             }
             }
             catch(ArrayIndexOutOfBoundsException e)
 		{ System.out.println("Error: Wornitem packet too long: " + e); }
@@ -409,19 +474,25 @@ private final int SMSG_CharLocAndBody = 0x1B;
          }
 
         }
+        private void handleDrawGamePlayer(byte buffer[]) {
+            byte[] gp = new byte[19];
+             for (int i = 0; i < gp.length; i++)
+			gp[i] = buffer[i];
+            player.setserial(((gp[1] <<24) | (gp[2] <<16) | (gp[3] <<8) | (gp[4])));
+            player.settype((gp[5] <<8) | (gp[6]) & 0xFF);
+            // 7 is unknown
+            player.hue = ((gp[8] <<8) | (gp[9]) & 0xFF);
+            player.flags = gp[10];
+            player.setX((gp[11] <<8) | (gp[12]) & 0xFF);
+            player.setY((gp[13] <<8) | (gp[14]) & 0xFF);
+            player.setZ(gp[18]);
+            System.out.println("X: " + player.getX() + " Y: " + player.getY());
 
-        private void handleCharMoveACK(byte buffer[])
-        {
-            //byte Moveack[] = new byte[3];
-            //for (int i = 0; i < Moveack.length; i++)
-	//		Moveack[i] = buffer[i];
-          //  int iSeq = Moveack[1];
-           // int iNot = Moveack[2];
-// Do nothing
         }
+
         private void handleObjectInfo(byte buffer[]) {
-
-
+            // This should be all correct
+            // need to remove 8000000 from ID
             boolean myresult = true;
             int offset = 0;
             int direction = 0;
@@ -433,18 +504,21 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		{ System.out.println("Error: Mobile data too long"); }
             for (int i = 0; i < incMobile.length; i++)
 			incMobile[i] = buffer[i];
-             long itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+                        
+             int itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
              int type = (buffer[7] << 8) | (buffer[8] & 0xFF);
              if ((itemid & 0x80000000) == 0x80000000) {
                  stack = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
+                 int temp2 = (incMobile[3] & 00001111);
+                  itemid = ((temp2 <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+                  // Removes the 8000000 if its found
              offset = offset + 2;
              }
              if ((type & 0x8000) == 0x8000) {
                  offset = offset + 1;
              }
             int itemx = ((incMobile[9 + offset] <<8) | (incMobile[10 + offset] & 0xFF));
-int temp = (incMobile[11 + offset] & 0xF);
-
+            int temp = (incMobile[11 + offset] & 0xF);
              int itemy = ((temp << 8) | (incMobile[12 + offset] & 0xFF));
              
              if ((itemx & 0x8000) == 0x8000) {
@@ -461,7 +535,7 @@ int temp = (incMobile[11 + offset] & 0xF);
              if ((itemy & 0x4000) == 0x4000) {
                  flags = incMobile[14 + offset];
              }
-             //drawdata = new UOObject(itemid,type,itemx,itemy,itemz,hue);
+             drawdata = new UOObject(itemid,type,itemx,itemy,itemz,hue);
                 for (int i = 0; i < Listitemsindex.size(); i++) {
                 if (itemid == Listitemsindex.get(i)) {
 
@@ -478,7 +552,11 @@ int temp = (incMobile[11 + offset] & 0xF);
             System.out.println("Object Info ID: " + itemid + " type: " + type + "X: " + itemx + "Y: " + itemy + " Hue: " + hue + " Flags: " + flags);
 
         }
-
+        public void printlist() {
+            for (int i = 0; i < Listitemsindex.size(); i++) {
+                System.out.println("ID:" + Listitemsindex.get(i) + "\n");
+            }
+        }
         private void handleDrawObject(byte buffer[])
         {
             // Draw object really means draw mobile
@@ -717,7 +795,59 @@ int temp = (incMobile[11 + offset] & 0xF);
 		}
 		write(sayPacket);
 	}
+        public void resync() {
+            byte sync[] = new byte[3];
+            sync[0] = (byte)0x22;
+            sync[1] = 0;
+            sync[2] = 0;
+            write(sync);
+        }
+        public void move(int x, int y, int prec) {
+            Boolean result = true;
+            int ld = 0;
+            int ldc = 0;
+            while(result) {
+                int dx = player.getX() - x;
+                if (dx < 0) {
+                    dx = 0;
+                }
+                int dy = player.getY() - y;
+                if (dy < 0) {
+                    dy = 0;
+                }
+                if (dy > dx) {
+                    dx = dy;
+                }
+                if (dx <= prec) {
+                    return;
+                }
+                int mx = player.getX();
+                int my = player.getY();
+                dy = my - y;
+                dx = mx - x;
+                if (ld == dx) {
+                    //begin
+                    ldc = ldc + 1;
+                    if (ldc > 100) {
+                        System.out.println("Out of range");
+                        return;
+                    }
+                    ld = dx;
 
+                }
+            }
+
+        }
+                private void handleCharMoveACK(byte buffer[])
+        {
+            byte Moveack[] = new byte[3];
+            for (int i = 0; i < Moveack.length; i++)
+			Moveack[i] = buffer[i];
+            int iSeq = Moveack[1];
+            int iNot = Moveack[2];
+            //if iSeq =
+// Do nothing
+        }
 	public boolean walk(String direction, int numOfSteps)
 	{
 		byte walkPacket[] = new byte[7];
@@ -758,6 +888,22 @@ int temp = (incMobile[11 + offset] & 0xF);
 		}
 		return true;
 	}
+
+        public void GetPlayerStatus() {
+            byte status[] = new byte[10];
+            status[0] = CMSG_GetPlayerStatus;
+            status[1] = (byte)0xED;
+            status[2] = (byte)0xED;
+            status[3] = (byte)0xED;
+            status[4] = (byte)0xED;
+            status[5] = (byte)0x04; // 0x05 is request skills? 0x3a
+             byte temp[] = intToByteArray(player.getserial());
+              status[6] = temp[0];
+            status[7] = temp[1];
+            status[8] = temp[2];
+            status[9] = temp[3];
+            write(status);
+        }
         public void dropg(int itemid, int x, int y, int z) {
             byte drop[] = new byte[14];
             drop[0] = CMSG_DropItem;
@@ -834,6 +980,7 @@ int temp = (incMobile[11 + offset] & 0xF);
 }
 	public void useSkill(String var1, String var2)
 	{
+                // This is broken needs to be fixed
 		byte skillPacket[] = new byte[9];
 		skillPacket[0] = (byte)0x12;
 		skillPacket[1] = 0x00; //block size
