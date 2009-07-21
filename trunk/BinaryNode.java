@@ -54,7 +54,7 @@ public class BinaryNode
 		int nrBits = 0, val = 0;
 		BinaryNode current = m_Tree;
 
-		for(int i = 0; i < 257; i++)
+		for(int i = 0; i < 257; i++) // was 257
 		{
 		current = m_Tree;
 		nrBits = (int)bit_table[i][0] - 1;
@@ -106,7 +106,7 @@ public class BinaryNode
 					val = currentNode.Value;
 					currentNode = m_Tree;
 
-					if(val == 256)
+					if(val == 256) // was 256 not -
 							return retval;
 
 					byte[] temp = new byte[retval.length + 1];
@@ -127,4 +127,38 @@ public class BinaryNode
 
 		return retval;
 	}
-}
+
+
+
+        public static byte Decompressbyte(byte source)
+	{
+		byte retval = 0;
+		byte current = 0;
+		int val = 0;
+		BinaryNode currentNode = m_Tree;
+			current = source;
+
+			for(int n = 7; n >= 0; n--)
+			{
+				int x = (current >> n) % 2;
+
+				if(x == 0)
+						currentNode = currentNode.Right;
+				else
+						currentNode = currentNode.Left;
+
+				if(currentNode.IsLeaf)
+				{
+					val = currentNode.Value;
+					currentNode = m_Tree;
+
+					if(val == 256) // was 256 not -
+							return retval;
+                                        retval = (byte)val;
+
+				}
+			}
+                        return retval;
+		}
+
+	}
