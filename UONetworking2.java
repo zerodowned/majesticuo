@@ -24,20 +24,28 @@
  *
  */
 
+
+
 import java.net.*;
 import java.io.*;
 import java.lang.Byte.*;
+import java.security.InvalidKeyException;
 import java.util.Collections.*;
 import java.util.Arrays.*;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Vector.*;
 import java.lang.String;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 
 public class UONetworking2 implements Runnable
 {
 	private boolean debug = true;
-
+private int bufferpos = 0;
+        
 	private Socket client;
 
 	private String ip;
@@ -101,7 +109,11 @@ private final int SMSG_CharLocAndBody = 0x1B;
         private final int SMSG_StatusBarInfo = 0x11;
         private final int CMSG_GetPlayerStatus = 0x34;
         private final int SMSG_DrawGamePlayer = 0x20;
-         public native void LoginCryptInit();
+        private final int CMSG_Pathfind = 0x38;
+        private final int SMSG_ClientFeatures = 0xB9;
+        private final int SMSG_ClientFeaturesSize = 3;
+        
+       
     //public native void LoginCryptEncrypt();
     //public native void Compress(byte Dest[],byte source[], int destsize, int srcsize);
 
@@ -159,6 +171,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
 			{
 				out = client.getOutputStream();
 				in = client.getInputStream();
+                               
+                                       client.setReceiveBufferSize(2048);
+                                       int misize = client.getReceiveBufferSize();
+                               System.out.println(" buffersize: " + misize);
 				write(pckFirstPacket);
 			}
 			else
@@ -220,27 +236,137 @@ private final int SMSG_CharLocAndBody = 0x1B;
 
 		thread.start();
 	}
+        public byte[] addtobuffer(byte buffer[], byte incoming[],int pos) {
+          //  byte result[] = new byte[buffer.length];
 
+            for(int i = 0; i < incoming.length;i++) {
+                buffer[i + bufferpos] = incoming[i];
+                }
+            bufferpos = bufferpos + incoming.length;
+            return buffer;
+        }
+        public int checkknownpackets(byte cmd) {
+
+            switch (cmd & 0xFF) {
+                case SMSG_ClientFeatures:
+                return 4; // assume packet size + 1
+
+                default:
+                    return 0;
+            }
+        }
 	public void run()
 	{
+         // output needs to be the size of the data, remove excess 00 00?
+        byte buffer[] = new byte[2000]; // create a large buffer, should be able to hold all traffic
+        ArrayList<Byte> aBuffer = new ArrayList<Byte>();
+         // create a large buffer, should be able to hold all traffic
+        byte decompressBuffer[] = new byte[2000];
+        Boolean newdata = false; Boolean bDecompress = false;
 		while (run)
 		{
+                     try {
+                thread.sleep(1);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(UONetworking2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                if (!client.isConnected())
+				{
+					System.err.println("Disconnected");
+					packetOperator.processDisconnect();
+				}
+
 			try
 			{
+                                //byte incoming[];
 				int size = in.available();
 				if (size != 0)
 				{
-					byte buffer[] = new byte[size];
-					byte decompressBuffer[] = new byte[size];
-					in.read(buffer, 0, buffer.length);
+                                byte incoming[] = new byte[in.available()];
+                                in.read(incoming);
+                                newdata = true;
+                                buffer = addtobuffer(buffer,incoming,bufferpos); // adds incoming data to buffer
+                                for (int i = 0; i > size;i++) { aBuffer.add(buffer[i]); }
+                                }
+                                if (newdata) {
+                                    byte output[] = new byte[buffer.length]; // create an output the size of buffer, may not all be used
+                                    byte exportcmd;
+                                    if (bDecompress) {
+                                        // decompress the cmd code
+                                        byte cmd = buffer[0];
+                                        byte dcmd = BinaryNode.Decompressbyte(cmd);
+                                       int result = checkknownpackets(dcmd);
+                                       if (result > 0) {
+                                           for(int x = 0; x > result;x++) { output[x] = buffer[x]; }
+                                           byte temp[] = new byte[buffer.length - result];
+                                           exportcmd = dcmd;
+                                           for(int x = 0; x > temp.length;x++) { temp[x] = buffer[x + result]; }
+                                           buffer = null;
+                                           buffer = temp;
+                                       }
+                                       else{
+                                           exportcmd = dcmd;
+                                           output = BinaryNode.Decompress(buffer);
+                                           buffer = null;
+                                           newdata = false;
+                                       }
+                                        // output is the single packet decompressed including CMD
+                                    }
+                                    else {
+                                        // none depress code
+                                         byte cmd = decompressBuffer[0];
+                                    int result = checkknownpackets(cmd);
+                                    if (result > 0) {
+                                        for(int x = 0; x > result;x++) { output[x] = buffer[x]; }
+                                        byte temp[] = new byte[buffer.length - result];
+                                           exportcmd = cmd;
+                                           for(int x = 0; x > temp.length;x++) { temp[x] = buffer[x + result]; }
+                                           buffer = null;
+                                           buffer = temp;
+                                    }
+                                    else {
+                                        exportcmd = cmd;
+                                       output = buffer; // We know the length of this packet, so check if buffer len is > packet len if so we only grab the packet we want
+                                        buffer = null;
+                                        newdata = false;
+                                    }
+                                    }
+                                    handlePacket(output);
 
-					if (decompress)	decompressBuffer = BinaryNode.Decompress(buffer);
-					else decompressBuffer = buffer;
 
-					if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
 
-					byte cmd = decompressBuffer[0];
-                                        switch (cmd & 0xFF) {
+                                    }// end  of newdata IF
+
+                                } // end of try
+			catch (SocketException e)
+			{
+				System.out.println("Socket Error: Most likely disconnect: " + e);
+				try {	client.close(); } catch (IOException e2) {}
+				packetOperator.processDisconnect();
+			}
+			catch (IOException e)
+			{
+				System.out.println("IOError: " + e);
+			}
+                        catch (NegativeArraySizeException e)
+			{
+			}
+			catch (Exception e)
+			{
+                           
+				System.out.println("Some other error in the thread: " + e);
+				e.printStackTrace();
+			}
+		}
+	}
+
+
+                                        public void handlePacket(byte buffer[]) {
+                                            byte cmd = buffer[0];
+                                    byte decompressBuffer[] = new byte[buffer.length];
+                                    decompressBuffer = buffer; // not needed just so i dont rewrite switch
+     					//if (debug) System.out.println("Server -> Client: \n" + printPacketHex(buffer) + "\n\n");
+                                      switch (cmd & 0xFF) {
                                             case SMSG_GameServlist:
                                                 handleServerList(decompressBuffer);
                                                 break;
@@ -301,40 +427,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                             default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" ); }
                                         }
 
-					
-				}
-				if (!client.isConnected())
-				{
-					System.err.println("Disconnected");
-					packetOperator.processDisconnect();
-				}
-				thread.sleep(2);
-			}
-			catch (SocketException e)
-			{
-				System.out.println("Socket Error: Most likely disconnect: " + e);
-				try {	client.close(); } catch (IOException e2) {}
-				packetOperator.processDisconnect();
-			}
-			catch (IOException e)
-			{
-				System.out.println("IOError: " + e);
-			}
-			catch (NegativeArraySizeException e)
-			{
-			}
-			catch (InterruptedException e)
-			{
-				System.out.println("Thread Error: " + e);
-			}
-			catch (Exception e)
-			{
-                           
-				System.out.println("Some other error in the thread: " + e);
-				e.printStackTrace();
-			}
-		}
-	}
+                                }
 
 	public void stop()
 	{
@@ -389,7 +482,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
                 myobj[i] = buffer[i];
             int itemid = (( myobj[1] <<24) | ( myobj[2] <<16) | ( myobj[3] <<8) | ( myobj[4]));
              for (int i = 0; i < Listitemsindex.size(); i++) {
-                if (itemid == Listitemsindex.get(i)) {
+                if (itemid == Listitemsindex.get(i) || (itemid & 0xBFFFFF) == Listitemsindex.get(i)) {
                Listitemsindex.remove(i);
                 Listitems.remove(i);
                 myresult = false;
@@ -505,12 +598,12 @@ private final int SMSG_CharLocAndBody = 0x1B;
             for (int i = 0; i < incMobile.length; i++)
 			incMobile[i] = buffer[i];
                         
-             int itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+             int itemid = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6] & 0xFF));
              int type = (buffer[7] << 8) | (buffer[8] & 0xFF);
              if ((itemid & 0x80000000) == 0x80000000) {
                  stack = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
-                 int temp2 = (incMobile[3] & 00001111);
-                  itemid = ((temp2 <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+                 //int temp2 = (incMobile[4] & 0x7F);
+                  itemid = (itemid & 0x7FFFFF);
                   // Removes the 8000000 if its found
              offset = offset + 2;
              }
@@ -679,13 +772,14 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		char passAr[] = pass.toCharArray();
 		for (int i = 0; i < passAr.length; i++)
 			keyPacket[i+35] = (byte)passAr[i];
-
-		write(keyPacket);
+               
+write(keyPacket);
+		//write(crypted);
 	}
-
 	private void handleClientFeaturesPacket()
 	{
 		//do nothing
+         
 	}
 
 
@@ -739,7 +833,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
 			charPacket[i + 69] = localAddress[i];
 
 		write(charPacket);
-		sendClient("2.0.3");
+		sendClient("4.0.4c");
 	}
 
 	private void sendClient(String client)
@@ -971,12 +1065,33 @@ private final int SMSG_CharLocAndBody = 0x1B;
                 (byte)(value >>> 8),
                 (byte)(value)};
         }
-        public static final byte[] intToByteArray(int value) {
+        private static final byte[] intToByteArray(int value) {
         return new byte[] {
                 (byte)(value >>> 24),
                 (byte)(value >>> 16),
                 (byte)(value >>> 8),
                 (byte)value};
+}       public void pathfind(int x, int y, int z, int cnt) {
+        byte path[] = new byte[7];
+        path[0] = (byte)0x38;
+        byte temp[] = intToByteArray2(x);
+        path[1] = temp[0];
+        path[2] = temp[1];
+                byte temp2[] = intToByteArray2(y);
+        path[3] = temp2[0];
+        path[4] = temp2[1];
+                byte temp3[] = intToByteArray2(z);
+        path[5] = temp3[0];
+        path[6] = temp3[1];
+        for(int i = 0; i < cnt; i++) {
+            write(path);
+            try {
+                thread.sleep(10);
+            } catch (InterruptedException ex) {
+                //Logger.getLogger(UONetworking2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
 }
 	public void useSkill(String var1, String var2)
 	{
@@ -1185,3 +1300,4 @@ System.out.println("Update Player ID: " + itemid + " type: " + model + "X: " + x
 	}
 
 }
+ 

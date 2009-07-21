@@ -119,10 +119,14 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 
 
 
-                        ip = "localhost";
+                        ip = "24.89.90.235";
+                        port = 2594;
+                        user = "";
+                        pass= "";
+                        ip  = "192.168.1.40";
                         port = 2593;
-                        user = "admin2";
-                        pass= "admin";
+                        user = "admin";
+                        pass = "admin";
 			//System.out.print("Enter Server IP: ");
 			//try	{ ip = br.readLine(); }
 			//catch (Exception e)	{	System.out.println("Error Getting Input: " + e); System.exit(1); }
@@ -226,6 +230,9 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
                 else if(commandSplit[0].equalsIgnoreCase("sync")) {
                     uonet.resync();
                 }
+                else if(commandSplit[0].equalsIgnoreCase("script")) {
+                    runscript();
+                }
                  else if(commandSplit[0].equalsIgnoreCase("drag")) {
                     int mytemp = Integer.parseInt(commandSplit[1]);
                     int mytemp2 = Integer.parseInt(commandSplit[2]);
@@ -249,7 +256,9 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 		for (int i = 0; i < 100; i++)
 			System.out.println();
 	}
-
+private void runscript() {
+    uonet.pathfind(uonet.player.getX() + 10, uonet.player.getY(), uonet.player.getZ(), 20);
+}
 	private void getPlayerCoords()
 	{
             
