@@ -45,7 +45,7 @@ public class UONetworking2 implements Runnable
 {
 	private boolean debug = true;
 private int bufferpos = 0;
-        
+        Boolean bDecompress = false;
 	private Socket client;
 
 	private String ip;
@@ -260,9 +260,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
          // output needs to be the size of the data, remove excess 00 00?
         byte buffer[] = new byte[2000]; // create a large buffer, should be able to hold all traffic
         ArrayList<Byte> aBuffer = new ArrayList<Byte>();
+        ArrayList<Byte> aOutput = new ArrayList<Byte>();
          // create a large buffer, should be able to hold all traffic
         byte decompressBuffer[] = new byte[2000];
-        Boolean newdata = false; Boolean bDecompress = false;
+        Boolean newdata = false; 
 		while (run)
 		{
                      try {
@@ -285,59 +286,54 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                 byte incoming[] = new byte[in.available()];
                                 in.read(incoming);
                                 newdata = true;
-                                buffer = addtobuffer(buffer,incoming,bufferpos); // adds incoming data to buffer
-                                for (int i = 0; i > size;i++) { aBuffer.add(buffer[i]); }
+                                //buffer = addtobuffer(buffer,incoming,bufferpos); // adds incoming data to buffer
+                                for(int i = 0; i < incoming.length;i++) {
+                                    aBuffer.add(incoming[i]);
+                                } // fills our vecotor with the packet
                                 }
                                 if (newdata) {
-                                    byte output[] = new byte[buffer.length]; // create an output the size of buffer, may not all be used
-                                    byte exportcmd;
+
                                     if (bDecompress) {
-                                        // decompress the cmd code
-                                        byte cmd = buffer[0];
+                                        byte cmd = aBuffer.get(0);
                                         byte dcmd = BinaryNode.Decompressbyte(cmd);
-                                       int result = checkknownpackets(dcmd);
-                                       if (result > 0) {
-                                           for(int x = 0; x > result;x++) { output[x] = buffer[x]; }
-                                           byte temp[] = new byte[buffer.length - result];
-                                           exportcmd = dcmd;
-                                           for(int x = 0; x > temp.length;x++) { temp[x] = buffer[x + result]; }
-                                           buffer = null;
-                                           buffer = temp;
-                                       }
-                                       else{
-                                           exportcmd = dcmd;
-                                           output = BinaryNode.Decompress(buffer);
-                                           buffer = null;
-                                           newdata = false;
-                                       }
-                                        // output is the single packet decompressed including CMD
+                                        int result = checkknownpackets(dcmd);
+                                        if (result > 0) {
+                                            for(int x = 0; x < result;x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
+                                         }
+                                        else {
+                                           for(int x = 0; x < aBuffer.size();x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            aBuffer.clear();
+                                            newdata = false;
+                                        }
                                     }
                                     else {
-                                        // none depress code
-                                         byte cmd = decompressBuffer[0];
-                                    int result = checkknownpackets(cmd);
-                                    if (result > 0) {
-                                        for(int x = 0; x > result;x++) { output[x] = buffer[x]; }
-                                        byte temp[] = new byte[buffer.length - result];
-                                           exportcmd = cmd;
-                                           for(int x = 0; x > temp.length;x++) { temp[x] = buffer[x + result]; }
-                                           buffer = null;
-                                           buffer = temp;
+                                        byte cmd = aBuffer.get(0);
+                                       int result = checkknownpackets(cmd);
+                                        if (result > 0) {
+                                            // Known packet so we only want to get the data from it
+                                            for(int x = 0; x < result;x++) {  aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
+                                        }
+                                        else {
+                                            for(int x = 0; x < aBuffer.size();x++) {  aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            aBuffer.clear();
+                                            newdata = false;
+                                        }
+
                                     }
-                                    else {
-                                        exportcmd = cmd;
-                                       output = buffer; // We know the length of this packet, so check if buffer len is > packet len if so we only grab the packet we want
-                                        buffer = null;
-                                        newdata = false;
-                                    }
-                                    }
+                                    byte temp[] = new byte[aOutput.size()];
+                                    byte output[] = new byte[aOutput.size()];
+                                    for(int x = 0; x < aOutput.size();x++) { temp[x] = aOutput.get(x); }
+                                    if (bDecompress) { output = BinaryNode.Decompress(temp); }
+                                    else { output = temp; }
                                     handlePacket(output);
+                                    aOutput.clear();
+                                }
 
+                        }// end  of newdata IF
 
-
-                                    }// end  of newdata IF
-
-                                } // end of try
+                                 // end of try
 			catch (SocketException e)
 			{
 				System.out.println("Socket Error: Most likely disconnect: " + e);
@@ -357,8 +353,8 @@ private final int SMSG_CharLocAndBody = 0x1B;
 				System.out.println("Some other error in the thread: " + e);
 				e.printStackTrace();
 			}
-		}
-	}
+                }
+        }
 
 
                                         public void handlePacket(byte buffer[]) {
@@ -374,7 +370,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                                 handleKickPacket(decompressBuffer);
                                                 break;
                                             case 0x8C:
-                                            { handleKey(decompressBuffer); decompress = true; }//set thread to start decompressing packets
+                                            { handleKey(decompressBuffer); bDecompress = true; }//set thread to start decompressing packets
                                                 break;
                                             case 0xB9:
                                                 handleClientFeaturesPacket();
