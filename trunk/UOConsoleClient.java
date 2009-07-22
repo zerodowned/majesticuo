@@ -151,8 +151,8 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			{
 				uonet.connect();
                                 // dark ping timer
-                                pingtimer = new Timer();
-                                pingtimer.scheduleAtFixedRate(new sendping(), 30000, 30000);
+                               // pingtimer = new Timer();
+                                //pingtimer.scheduleAtFixedRate(new sendping(), 30000, 30000);
 				enterCommand();
 			}
 			catch (Exception e)

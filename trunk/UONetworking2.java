@@ -245,24 +245,25 @@ private final int SMSG_CharLocAndBody = 0x1B;
             bufferpos = bufferpos + incoming.length;
             return buffer;
         }
-        public int checkknownpackets(byte cmd) {
+        public int checkknownpackets(byte cmd,byte dcmd) {
 
-            switch (cmd & 0xFF) {
+            switch (dcmd & 0xFF) {
                 case SMSG_ClientFeatures:
                 return 4; // assume packet size + 1
 
                 default:
                     return 0;
-            }
+            } 
+           
         }
 	public void run()
 	{
          // output needs to be the size of the data, remove excess 00 00?
-        byte buffer[] = new byte[2000]; // create a large buffer, should be able to hold all traffic
+        //byte buffer[] = new byte[2000]; // create a large buffer, should be able to hold all traffic
         ArrayList<Byte> aBuffer = new ArrayList<Byte>();
         ArrayList<Byte> aOutput = new ArrayList<Byte>();
          // create a large buffer, should be able to hold all traffic
-        byte decompressBuffer[] = new byte[2000];
+       // byte decompressBuffer[] = new byte[2000];
         Boolean newdata = false; 
 		while (run)
 		{
@@ -292,31 +293,39 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                 } // fills our vecotor with the packet
                                 }
                                 if (newdata) {
+                                    if (aBuffer.isEmpty() == false) {
+
 
                                     if (bDecompress) {
                                         byte cmd = aBuffer.get(0);
                                         byte dcmd = BinaryNode.Decompressbyte(cmd);
-                                        int result = checkknownpackets(dcmd);
+                                        int result = checkknownpackets(cmd,dcmd);
+                                        System.out.println("Dcmd is: " + dcmd);
                                         if (result > 0) {
+                                            System.out.println("Known Length!");
                                             for(int x = 0; x < result;x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
                                             for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
                                          }
                                         else {
-                                           for(int x = 0; x < aBuffer.size();x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
-                                            aBuffer.clear();
+                                            for(byte element : aBuffer) { aOutput.add(element); }
+                                           //for(int x = 0; x < aBuffer.size();x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            if (aBuffer.isEmpty() == false) {
+                                                aBuffer.clear();
+                                            }
+
                                             newdata = false;
                                         }
                                     }
                                     else {
                                         byte cmd = aBuffer.get(0);
-                                       int result = checkknownpackets(cmd);
+                                       int result = checkknownpackets(cmd,cmd);
                                         if (result > 0) {
                                             // Known packet so we only want to get the data from it
                                             for(int x = 0; x < result;x++) {  aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
                                             for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
                                         }
                                         else {
-                                            for(int x = 0; x < aBuffer.size();x++) {  aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
+                                            for(byte element : aBuffer) { aOutput.add(element); } // grabs the packet we want, into output
                                             aBuffer.clear();
                                             newdata = false;
                                         }
@@ -329,6 +338,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                     else { output = temp; }
                                     handlePacket(output);
                                     aOutput.clear();
+                                    }
                                 }
 
                         }// end  of newdata IF
@@ -357,12 +367,9 @@ private final int SMSG_CharLocAndBody = 0x1B;
         }
 
 
-                                        public void handlePacket(byte buffer[]) {
-                                            byte cmd = buffer[0];
-                                    byte decompressBuffer[] = new byte[buffer.length];
-                                    decompressBuffer = buffer; // not needed just so i dont rewrite switch
-     					//if (debug) System.out.println("Server -> Client: \n" + printPacketHex(buffer) + "\n\n");
-                                      switch (cmd & 0xFF) {
+                                        public void handlePacket(byte decompressBuffer[]) {
+                                           if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
+                                      switch (decompressBuffer[0] & 0xFF) {
                                             case SMSG_GameServlist:
                                                 handleServerList(decompressBuffer);
                                                 break;
@@ -420,7 +427,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                             case SMSG_DrawGamePlayer:
                                                 handleDrawGamePlayer(decompressBuffer);
                                                     break;
-                                            default:  { if (debug) System.out.println("Unknown Packet cmd: " + (cmd) + "fullpacket: " + printPacketHex(decompressBuffer) + "\n" ); }
+                                          default:  { if (debug) System.out.println("Unknown Packet: " + printPacketHex(decompressBuffer) + "\n" ); }
                                         }
 
                                 }
