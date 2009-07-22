@@ -47,7 +47,7 @@ public class UONetworking2 implements Runnable
 private int bufferpos = 0;
         Boolean bDecompress = false;
 	private Socket client;
-
+        public int mybufferpos = 0;
 	private String ip;
 	private int port;
 	private String user;
@@ -111,7 +111,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
         private final int SMSG_DrawGamePlayer = 0x20;
         private final int CMSG_Pathfind = 0x38;
         private final int SMSG_ClientFeatures = 0xB9;
-        private final int SMSG_ClientFeaturesSize = 3;
+        private final int SMSG_GeneralInformation = 0xBf;
         
        
     //public native void LoginCryptEncrypt();
@@ -245,7 +245,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
             bufferpos = bufferpos + incoming.length;
             return buffer;
         }
-        public int checkknownpackets(byte cmd,byte dcmd) {
+        public int checkknownpackets(byte dcmd) {
 
             switch (dcmd & 0xFF) {
                 case SMSG_ClientFeatures:
@@ -268,7 +268,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		while (run)
 		{
                      try {
-                thread.sleep(1);
+                thread.sleep(5);
             } catch (InterruptedException ex) {
                 Logger.getLogger(UONetworking2.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -292,53 +292,54 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                     aBuffer.add(incoming[i]);
                                 } // fills our vecotor with the packet
                                 }
-                                if (newdata) {
-                                    if (aBuffer.isEmpty() == false) {
+                                while (!aBuffer.isEmpty()) {
+                                  //  if (aBuffer.isEmpty() == false) {
 
 
                                     if (bDecompress) {
-                                        byte cmd = aBuffer.get(0);
-                                        byte dcmd = BinaryNode.Decompressbyte(cmd);
-                                        int result = checkknownpackets(cmd,dcmd);
-                                        System.out.println("Dcmd is: " + dcmd);
-                                        if (result > 0) {
-                                            System.out.println("Known Length!");
-                                            for(int x = 0; x < result;x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
-                                            for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
-                                         }
+                                        byte tempbuf[] = new byte[aBuffer.size()]; // create a buffer to hold list
+                                        for(int x = 0; x < aBuffer.size();x++) { tempbuf[x] = aBuffer.get(x); } // adds list to buffer
+                                           if(aBuffer.size() > 1000) {
+                                               int zx = 55+5;
+                                           }
+                                        huffmanobject myhuf = new huffmanobject();
+                                        myhuf.buffer = tempbuf;
+                                        myhuf.src_size = tempbuf.length;
+                                        myhuf.out_size = 0;
+                                        myhuf = BinaryNode.drkDecompress(myhuf);
+                                        byte temp[] = myhuf.output;
+                                        //byte temp[] = BinaryNode.Decompress(tempbuf); // creates a decompress buffer with only complete packet
+                                        if (temp.length < 1) { aBuffer.clear(); break; }// if we are getting garbage wipe the buffer.
+                                        if (tempbuf.length > temp.length) {
+                                            System.out.println("Packet: " + aBuffer.size() + "bytes consumed: " + myhuf.out_size);
+                                            int intx = 1;
+                                            //if (temp[0] == (byte)0xB9) { intx = 2; }
+                                             for(int x = 0; x < temp.length;x++) { aOutput.add(temp[x]); } // outputs the packet
+                                             for(int x = 0; x < myhuf.out_size + intx;x++) { aBuffer.remove(0); } // removes it from queue
+                                        }
                                         else {
-                                            for(byte element : aBuffer) { aOutput.add(element); }
-                                           //for(int x = 0; x < aBuffer.size();x++) { aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
-                                            if (aBuffer.isEmpty() == false) {
+                                             for(int x = 0; x < temp.length;x++) { aOutput.add(temp[x]); } // outputs the packet
+                                              if (aBuffer.isEmpty() == false) {
                                                 aBuffer.clear();
                                             }
-
-                                            newdata = false;
+                                               // newdata = false;
                                         }
                                     }
-                                    else {
-                                        byte cmd = aBuffer.get(0);
-                                       int result = checkknownpackets(cmd,cmd);
-                                        if (result > 0) {
-                                            // Known packet so we only want to get the data from it
-                                            for(int x = 0; x < result;x++) {  aOutput.add(aBuffer.get(x)); } // grabs the packet we want, into output
-                                            for(int x = 0; x < result;x++) { aBuffer.remove(0); } // removes the packet from our buffer queue
-                                        }
-                                        else {
-                                            for(byte element : aBuffer) { aOutput.add(element); } // grabs the packet we want, into output
-                                            aBuffer.clear();
-                                            newdata = false;
-                                        }
 
+                                    else {
+                                        byte temp[] = new byte[aBuffer.size()]; // create a buffer to hold list
+                                        for(int x = 0; x < aBuffer.size();x++) { temp[x] = aBuffer.get(x); } // adds list to buffer
+                                              if (aBuffer.isEmpty() == false) {
+                                                aBuffer.clear();
+                                              }
+                                           // newdata = false;
+                                            for(int x = 0; x < temp.length;x++) { aOutput.add(temp[x]); }
                                     }
                                     byte temp[] = new byte[aOutput.size()];
-                                    byte output[] = new byte[aOutput.size()];
                                     for(int x = 0; x < aOutput.size();x++) { temp[x] = aOutput.get(x); }
-                                    if (bDecompress) { output = BinaryNode.Decompress(temp); }
-                                    else { output = temp; }
-                                    handlePacket(output);
+                                    handlePacket(temp);
                                     aOutput.clear();
-                                    }
+                                   // }
                                 }
 
                         }// end  of newdata IF
@@ -368,7 +369,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
 
 
                                         public void handlePacket(byte decompressBuffer[]) {
-                                           if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
+                                           //if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
                                       switch (decompressBuffer[0] & 0xFF) {
                                             case SMSG_GameServlist:
                                                 handleServerList(decompressBuffer);
@@ -427,6 +428,9 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                             case SMSG_DrawGamePlayer:
                                                 handleDrawGamePlayer(decompressBuffer);
                                                     break;
+                                          case SMSG_GeneralInformation:
+                                              handleGeneralInformation(decompressBuffer);
+                                              break;
                                           default:  { if (debug) System.out.println("Unknown Packet: " + printPacketHex(decompressBuffer) + "\n" ); }
                                         }
 
@@ -436,7 +440,9 @@ private final int SMSG_CharLocAndBody = 0x1B;
 	{
 		run = false;
 	}
-
+        private void handleGeneralInformation(byte buffer[]) {
+            // do nothing
+        }
         private void handleOverallLightLevel(byte buffer[]){
             // do nothing
         }

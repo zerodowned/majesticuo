@@ -106,8 +106,10 @@ public class BinaryNode
 					val = currentNode.Value;
 					currentNode = m_Tree;
 
-					if(val == 256) // was 256 not -
-							return retval;
+					if(val == 256){
+                                            return retval;
+                                        }
+							
 
 					byte[] temp = new byte[retval.length + 1];
 					//retval.CopyTo(temp, 0);
@@ -161,4 +163,63 @@ public class BinaryNode
                         return retval;
 		}
 
+
+        public static huffmanobject drkDecompress(huffmanobject mysource)
+	{
+                byte source[] = mysource.buffer;
+		byte[] retval = new byte[0];
+		byte current = 0;
+		int val = 0;
+		BinaryNode currentNode = m_Tree;
+
+		for(int i = 0; i < source.length; i++)
+		{
+                    mysource.out_size = i;
+			current = source[i];
+
+			for(int n = 7; n >= 0; n--)
+			{
+				int x = (current >> n) % 2;
+
+				if(x == 0)
+						currentNode = currentNode.Right;
+				else
+						currentNode = currentNode.Left;
+
+				if(currentNode.IsLeaf)
+				{
+					val = currentNode.Value;
+					currentNode = m_Tree;
+
+					if(val == 256){
+                                            mysource.output = retval;
+                                            return mysource;
+                                        }
+
+
+					byte[] temp = new byte[retval.length + 1];
+					//retval.CopyTo(temp, 0);
+					//temp[0] = retval;
+					for (int j = 0; j < retval.length; j++)
+						temp[j] = retval[j];
+					temp[temp.length - 1] = (byte)val;
+					retval = new byte[temp.length];
+					//temp.CopyTo(retval, 0);
+					//retval[0] = temp;
+					for (int j = 0; j < temp.length; j++)
+						retval[j] = temp[j];
+					temp = null;
+				}
+			}
+		}
+                mysource.output = retval;
+		return mysource;
 	}
+
+	}
+class huffmanobject {
+    public byte buffer[];
+    public int src_size;
+    public int out_size;
+    public byte output[];
+}
