@@ -16,6 +16,7 @@ public class UOObject{
     public int y;
     public int z;
     public int color;
+    public int stack;
 
     public UOObject(int ObjectSerial, int type, int myX, int myY, int myZ, int color) {
         this.serial = ObjectSerial;

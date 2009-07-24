@@ -26,6 +26,7 @@
 
 
 
+import Twofish.Twofish_Algorithm;
 import java.net.*;
 import java.io.*;
 import java.lang.Byte.*;
@@ -43,9 +44,14 @@ import java.util.logging.Logger;
 
 public class UONetworking2 implements Runnable
 {
+        Twofish_Algorithm twofish;
+        public Object twofishob;
+        public byte mykey[] = new byte[4];
+
 	private boolean debug = true;
-private int bufferpos = 0;
         Boolean bDecompress = false;
+        Boolean bCrypt = false;
+        Boolean UseCrypt = false;
 	private Socket client;
         public int mybufferpos = 0;
 	private String ip;
@@ -53,21 +59,13 @@ private int bufferpos = 0;
 	private String user;
 	private String pass;
 	private UOPacketOperation packetOperator;
-
-	private boolean canSendServer = false;
-	private boolean canSendChar = false;
-
 	private Thread thread;
 	private boolean run = true;
-	private boolean decompress = false;
-
 	private InputStream in;
 	private OutputStream out;
         public UOObject drawdata;
         Player player = new Player();
-
         public Vector Listitemsindex = new Vector();
-
         //public Vector<int> Listitemsindex = new Vector<int>();
         //public UOObject[] Listitems = new UOObject[100];
         public Vector<UOObject> Listitems = new Vector<UOObject>();
@@ -90,28 +88,91 @@ private int bufferpos = 0;
 	private final byte pckServerChat = (byte)0xAE;
 	private final byte pckServerSpeech = (byte)0x1C;
 	private final byte pckClientWalk = (byte)0x02;
-        private final int SMSG_GameServlist = 0xA8;
-        private final int CMSG_Loginreq = 0x80;
-        private final int SMSG_DrawObject = 0x78;
+        //Supported
         private final int MSG_CharMoveACK = 0x22;
+        private final int MSG_PingMessage = 0x73;
+        //Unsupported
+        private final int MSG_TargetCursorCommands = 0x6C;
+        private final int MSG_SendSkills = 0x3A;
+        private final int MSG_SecureTrading = 0x6F;
+        private final int MSG_AllNames = 0x98;
+
+        //Supported
+        private final int SMSG_GameServlist = 0xA8;
+        private final int SMSG_DrawObject = 0x78;
         private final int SMSG_SetWeather = 0x65;
         private final int SMSG_WornItem = 0x2E;
         private final int SMSG_Deleteobject = 0x1D;
         private final int SMSG_UpdatePlayer = 0x77;
-        private final int MSG_PingMessage = 0x73;
-        private final int CMSG_DoubleClick = 0x06;
-private final int SMSG_CharLocAndBody = 0x1B;
-        private final int SMSG_OverallLightLevel = 0x4F;
-        private final int CMSG_SingleClick = 0x09;
-        private final int CMSG_PickUpItem = 0x07;
-        private final int CMSG_DropItem = 0x08;
-        private final int SMSG_ObjectInfo = 0x1A;
-        private final int SMSG_StatusBarInfo = 0x11;
-        private final int CMSG_GetPlayerStatus = 0x34;
-        private final int SMSG_DrawGamePlayer = 0x20;
-        private final int CMSG_Pathfind = 0x38;
         private final int SMSG_ClientFeatures = 0xB9;
-        private final int SMSG_GeneralInformation = 0xBf;
+        private final int SMSG_GeneralInformation = 0xBF;
+        private final int SMSG_CharLocAndBody = 0x1B;
+        private final int SMSG_OverallLightLevel = 0x4F;
+        private final int SMSG_ObjectInfo = 0x1A;
+        private final int SMSG_StatusBarInfo = 0x11;    
+        private final int SMSG_DrawGamePlayer = 0x20;
+        //Unsupported
+        private final int SMSG_Damage = 0x0B;
+        private final int SMSG_CharMoveRejection = 0x21;
+        private final int SMSG_DraggingOfItem = 0x23;
+        private final int SMSG_DrawContainer = 0x24;
+        private final int SMSG_AddItemToContainer = 0x25;
+        private final int SMSG_KickPlayer = 0x26;
+        private final int SMSG_RejectMoveItemRequest = 0x27;
+        private final int SMSG_DropItemApproved = 0x29;
+        private final int SMSG_Blood = 0x2A;
+        private final int SMSG_MobAttribute = 0x2D;
+        private final int SMSG_FightOccuring = 0x2F;
+        private final int SMSG_AttackOK = 0x30;
+        private final int SMSG_AddmultipleItemsInContainer = 0x3C;
+        private final int SMSG_PersonalLightLevel = 0x4E;
+        private final int SMSG_IdleWarning = 0x53;
+        private final int SMSG_PlaySoundEffect = 0x54;
+        private final int SMSG_CharacterAnimation = 0x6E;
+        private final int SMSG_GraphicalEffect = 0x70;
+        private final int SMSG_OpenBuyWindow = 0x74;
+        private final int SMSG_OpenDialogBox = 0x7C;
+        private final int SMSG_OpenPaperdoll = 0x88;
+        private final int SMSG_MovePlayer = 0x97;
+        private final int SMSG_SellList = 0x9E;
+        private final int SMSG_UpdateCurrentHealth = 0xA1;
+        private final int SMSG_UpdateCurrentMana = 0xA2;
+        private final int SMSG_UpdateCurrentStamina = 0xA3;
+        private final int SMSG_AllowRefuseAttack = 0xAA;
+        private final int SMSG_GumpTextEntryDialog = 0xAB;
+        private final int SMSG_SendGumpMenuDialog = 0xB0;
+        private final int SMSG_CliocMessage = 0xC1;
+
+        //Supported
+        private final int CMSG_GetPlayerStatus = 0x34;
+        private final int CMSG_DropItem = 0x08;
+        private final int CMSG_Loginreq = 0x80;
+        private final int CMSG_Pathfind = 0x38; // runuo doesnt support this
+        private final int CMSG_SingleClick = 0x09;
+        private final int CMSG_DoubleClick = 0x06;
+        private final int CMSG_PickUpItem = 0x07;
+        //Unsupported
+        private final int CMSG_DissconnectNotification = 0x01;
+        private final int CMSG_MoveRequest = 0x02;
+        private final int CMSG_TalkRequest = 0x03;
+        private final int CMSG_RequestAttack = 0x05;
+        private final int CMSG_RequestSkills = 0x12;
+        private final int CMSG_DropWearitem = 0x13;
+        private final int CMSG_BuyItems = 0x3B;
+        private final int CMSG_RequestWarMode = 0x72;
+        private final int CMSG_ResponseToDialogBox = 0x7D;
+        private final int CMSG_SellListReply = 0x9F;
+        private final int CMSG_ClientSPy = 0xA4;
+        private final int CMSG_GumpTextEntryDialogReply = 0xAC;
+        private final int CMSG_GumpMenuSelection = 0xAD;
+        private final int CMSG_SpyOnClient = 0xD9;
+        
+
+
+
+
+
+
         
        
     //public native void LoginCryptEncrypt();
@@ -139,7 +200,14 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		}
 		try
 		{
-			out.write(buffer);
+                        if (bCrypt) {
+                            byte crypted[] = twofish.blockEncrypt(buffer,0, mykey);
+                            if (debug) System.out.println("Client -> Server Crypted: \n" + printPacketHex(buffer) + "\n\n");
+                        }
+                        else {
+                            out.write(buffer);
+                        }
+			
 			if (debug) System.out.println("Client -> Server: \n" + printPacketHex(buffer) + "\n\n");
 		}
 		catch (SocketException e)
@@ -235,27 +303,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		write(loginPacket);
 
 		thread.start();
-	}
-        public byte[] addtobuffer(byte buffer[], byte incoming[],int pos) {
-          //  byte result[] = new byte[buffer.length];
-
-            for(int i = 0; i < incoming.length;i++) {
-                buffer[i + bufferpos] = incoming[i];
-                }
-            bufferpos = bufferpos + incoming.length;
-            return buffer;
-        }
-        public int checkknownpackets(byte dcmd) {
-
-            switch (dcmd & 0xFF) {
-                case SMSG_ClientFeatures:
-                return 4; // assume packet size + 1
-
-                default:
-                    return 0;
-            } 
-           
-        }
+	}  
 	public void run()
 	{
          // output needs to be the size of the data, remove excess 00 00?
@@ -264,7 +312,6 @@ private final int SMSG_CharLocAndBody = 0x1B;
         ArrayList<Byte> aOutput = new ArrayList<Byte>();
          // create a large buffer, should be able to hold all traffic
        // byte decompressBuffer[] = new byte[2000];
-        Boolean newdata = false; 
 		while (run)
 		{
                      try {
@@ -280,22 +327,16 @@ private final int SMSG_CharLocAndBody = 0x1B;
 
 			try
 			{
-                                //byte incoming[];
 				int size = in.available();
 				if (size != 0)
 				{
                                 byte incoming[] = new byte[in.available()];
                                 in.read(incoming);
-                                newdata = true;
-                                //buffer = addtobuffer(buffer,incoming,bufferpos); // adds incoming data to buffer
-                                for(int i = 0; i < incoming.length;i++) {
+                               for(int i = 0; i < incoming.length;i++) {
                                     aBuffer.add(incoming[i]);
                                 } // fills our vecotor with the packet
                                 }
                                 while (!aBuffer.isEmpty()) {
-                                  //  if (aBuffer.isEmpty() == false) {
-
-
                                     if (bDecompress) {
                                         byte tempbuf[] = new byte[aBuffer.size()]; // create a buffer to hold list
                                         for(int x = 0; x < aBuffer.size();x++) { tempbuf[x] = aBuffer.get(x); } // adds list to buffer
@@ -308,12 +349,10 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                         myhuf.out_size = 0;
                                         myhuf = BinaryNode.drkDecompress(myhuf);
                                         byte temp[] = myhuf.output;
-                                        //byte temp[] = BinaryNode.Decompress(tempbuf); // creates a decompress buffer with only complete packet
                                         if (temp.length < 1) { aBuffer.clear(); break; }// if we are getting garbage wipe the buffer.
                                         if (tempbuf.length > temp.length) {
                                             System.out.println("Packet: " + aBuffer.size() + "bytes consumed: " + myhuf.out_size);
                                             int intx = 1;
-                                            //if (temp[0] == (byte)0xB9) { intx = 2; }
                                              for(int x = 0; x < temp.length;x++) { aOutput.add(temp[x]); } // outputs the packet
                                              for(int x = 0; x < myhuf.out_size + intx;x++) { aBuffer.remove(0); } // removes it from queue
                                         }
@@ -322,7 +361,6 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                               if (aBuffer.isEmpty() == false) {
                                                 aBuffer.clear();
                                             }
-                                               // newdata = false;
                                         }
                                     }
 
@@ -332,14 +370,12 @@ private final int SMSG_CharLocAndBody = 0x1B;
                                               if (aBuffer.isEmpty() == false) {
                                                 aBuffer.clear();
                                               }
-                                           // newdata = false;
                                             for(int x = 0; x < temp.length;x++) { aOutput.add(temp[x]); }
                                     }
                                     byte temp[] = new byte[aOutput.size()];
                                     for(int x = 0; x < aOutput.size();x++) { temp[x] = aOutput.get(x); }
                                     handlePacket(temp);
                                     aOutput.clear();
-                                   // }
                                 }
 
                         }// end  of newdata IF
@@ -367,20 +403,53 @@ private final int SMSG_CharLocAndBody = 0x1B;
                 }
         }
 
+        public void enablecrypt() {
+            if (UseCrypt) {
+          
+            bCrypt = true;
 
+            
+            int mkey = ((mykey[0] <<24) | (mykey[1] <<16) | (mykey[2] <<8) | (mykey[3]));
+            //int nkey = ((mkey<<96) | (mkey<<64) | (mkey<<32) | (mkey));
+           byte zkey[] = new byte[16];
+           zkey[0] = mykey[0];
+           zkey[1] = mykey[1];
+           zkey[2] = mykey[2];
+           zkey[3] = mykey[3];
+           zkey[4] = mykey[0];
+           zkey[5] = mykey[1];
+           zkey[6] = mykey[2];
+           zkey[7] = mykey[3];
+           zkey[8] = mykey[0];
+           zkey[9] = mykey[1];
+           zkey[10] = mykey[2];
+           zkey[11] = mykey[3];
+           zkey[12] = mykey[0];
+           zkey[13] = mykey[1];
+           zkey[14] = mykey[2];
+           zkey[15] = mykey[3];
+                    //zkey = ((mykey <<96) | (mykey <<64) | (mykey <<32) | mykey);
+       System.out.println("KEY" + zkey);
+        try {
+            twofishob = twofish.makeKey(zkey);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(UONetworking2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        }
+ }
                                         public void handlePacket(byte decompressBuffer[]) {
                                            //if (debug) System.out.println("Server -> Client: \n" + printPacketHex(decompressBuffer) + "\n\n");
                                       switch (decompressBuffer[0] & 0xFF) {
                                             case SMSG_GameServlist:
                                                 handleServerList(decompressBuffer);
                                                 break;
-                                            case 0x26:
+                                            case SMSG_KickPlayer:
                                                 handleKickPacket(decompressBuffer);
                                                 break;
                                             case 0x8C:
-                                            { handleKey(decompressBuffer); bDecompress = true; }//set thread to start decompressing packets
+                                            { handleKey(decompressBuffer); bDecompress = true; enablecrypt(); }//set thread to start decompressing packets
                                                 break;
-                                            case 0xB9:
+                                            case SMSG_ClientFeatures:
                                                 handleClientFeaturesPacket();
                                                 break;
                                             case 0xA9:
@@ -478,12 +547,9 @@ private final int SMSG_CharLocAndBody = 0x1B;
                 player.maxweight = ((status[63] <<8) | (status[64] & 0xFF));
             }
 
-
-
       if (debug) System.out.println("Status Update ID:" + player.getserial() + " Name: " + player.name + " Cur HP: " + player.curhp + "Weight: " + player.weight + "max: " + player.maxweight + "\n");
-
-
         }
+
         private void handleDeleteobject(byte buffer[]) {
             Boolean myresult = true;
             byte myobj[] = new byte[5];
@@ -526,7 +592,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
             int itemz = 0;
             int hue = 0;
             int type = 0;
-            if (debug) System.out.println("wormitemid: " + itemid + "MobID: " + mobileid);
+            //if (debug) System.out.println("wormitemid: " + itemid + "MobID: " + mobileid);
              drawdata = new UOObject(itemid,type,itemx,itemy,itemz,hue);
                 for (int i = 0; i < Listitemsindex.size(); i++) {
                 if (itemid == Listitemsindex.get(i)) {
@@ -762,6 +828,7 @@ private final int SMSG_CharLocAndBody = 0x1B;
 		key[1] = buffer[8];
 		key[2] = buffer[9];
 		key[3] = buffer[10];
+                mykey = key;
 		return key;
 	}
 
@@ -780,9 +847,8 @@ private final int SMSG_CharLocAndBody = 0x1B;
 
 		char passAr[] = pass.toCharArray();
 		for (int i = 0; i < passAr.length; i++)
-			keyPacket[i+35] = (byte)passAr[i];
-               
-write(keyPacket);
+			keyPacket[i+35] = (byte)passAr[i];   
+                    write(keyPacket);
 		//write(crypted);
 	}
 	private void handleClientFeaturesPacket()
@@ -941,7 +1007,7 @@ write(keyPacket);
             }
 
         }
-                private void handleCharMoveACK(byte buffer[])
+        private void handleCharMoveACK(byte buffer[])
         {
             byte Moveack[] = new byte[3];
             for (int i = 0; i < Moveack.length; i++)
@@ -1309,4 +1375,8 @@ System.out.println("Update Player ID: " + itemid + " type: " + model + "X: " + x
 	}
 
 }
- 
+class twofishobj {
+    public int sBox;
+    public int subKeys;
+
+}

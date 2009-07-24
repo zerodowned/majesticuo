@@ -9,6 +9,7 @@
  */
 import java.util.Collections.*;
 public class Player {
+
     private int serial;
     public int type;
     private int x;
