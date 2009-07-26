@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 public class UONetworking2 implements Runnable
 {
         Twofish_Algorithm twofish;
+        LoginCrypt lcrypt = new LoginCrypt();
         public Object twofishob;
         public byte mykey[] = new byte[4];
 
@@ -70,7 +71,8 @@ public class UONetworking2 implements Runnable
         //public UOObject[] Listitems = new UOObject[100];
         public Vector<UOObject> Listitems = new Vector<UOObject>();
         public byte pingstep = 0;
-	private final byte[] pckFirstPacket = { 0x0F, 0x70, 0x00, 0x01 };
+        //{ 0x0F, 0x70, 0x00, 0x01 };
+	private final byte[] pckFirstPacket = intToByteArray(0xC0A80128);
 	private final byte pckLoginreq = (byte)0x80;
 	private final byte pckGameServList = (byte)0xA8;
 	private final byte pckSelectServer = (byte)0xA0;
@@ -299,9 +301,20 @@ public class UONetworking2 implements Runnable
 			loginPacket[i + 31] = (byte)loginPass[i];
 		}
 		loginPacket[61] = (byte)0xFF;
-
-		write(loginPacket);
-
+                if (UseCrypt) {
+                    lcrypt.k1 = 0x2DBBB7CD;
+                lcrypt.k2 = 0xA3C95E7F;
+               lcrypt.pseed = 0xC0A80128;//0x0100007F;
+                // lcrypt.pseed = ((pckFirstPacket[0] << 24) | (pckFirstPacket[1] <<16) | (pckFirstPacket[2] << 8) | (pckFirstPacket[3]));
+                lcrypt.initlogin();
+               System.out.println(lcrypt.m_key[0] + "SPACE" + lcrypt.m_key[1]);
+                byte tempbyte[] = lcrypt.encrypt(loginPacket, loginPacket.length);
+		System.out.println(printPacketHex(tempbyte));
+                write(tempbyte);
+                }
+                else {
+                    write(loginPacket);
+                }
 		thread.start();
 	}  
 	public void run()
@@ -908,7 +921,7 @@ public class UONetworking2 implements Runnable
 			charPacket[i + 69] = localAddress[i];
 
 		write(charPacket);
-		sendClient("4.0.4c");
+		sendClient("3.0.0.a");
 	}
 
 	private void sendClient(String client)

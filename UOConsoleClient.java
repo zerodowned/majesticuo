@@ -117,11 +117,11 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			fromFile = false;
 			br = new BufferedReader(new InputStreamReader(System.in));
 
+
                          ip = "24.89.90.235";
-                        port = 2594;
+                        port = 2593;
                         user = "";
                         pass= "";
-
                        
                         ip  = "192.168.1.40";
                         port = 2593;
@@ -152,8 +152,8 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			{
 				uonet.connect();
                                 // dark ping timer
-                               // pingtimer = new Timer();
-                                //pingtimer.scheduleAtFixedRate(new sendping(), 30000, 30000);
+                                pingtimer = new Timer();
+                                pingtimer.scheduleAtFixedRate(new sendping(), 30000, 30000);
 				enterCommand();
 			}
 			catch (Exception e)
