@@ -52,7 +52,7 @@ public class UONetworking2 implements Runnable
 	private boolean debug = true;
         Boolean bDecompress = false;
         Boolean bCrypt = false;
-        Boolean UseCrypt = false;
+        Boolean UseCrypt = true;
 	private Socket client;
         public int mybufferpos = 0;
 	private String ip;
@@ -72,7 +72,7 @@ public class UONetworking2 implements Runnable
         public Vector<UOObject> Listitems = new Vector<UOObject>();
         public byte pingstep = 0;
         //{ 0x0F, 0x70, 0x00, 0x01 };
-	private final byte[] pckFirstPacket = intToByteArray(0xC0A80128);
+	private final byte[] pckFirstPacket = intToByteArray(16820416);
 	private final byte pckLoginreq = (byte)0x80;
 	private final byte pckGameServList = (byte)0xA8;
 	private final byte pckSelectServer = (byte)0xA0;
@@ -302,15 +302,19 @@ public class UONetworking2 implements Runnable
 		}
 		loginPacket[61] = (byte)0xFF;
                 if (UseCrypt) {
-                    lcrypt.k1 = 0x2DBBB7CD;
+                    lcrypt.k1 = 289686529;
                 lcrypt.k2 = 0xA3C95E7F;
-               lcrypt.pseed = 0xC0A80128;//0x0100007F;
+               lcrypt.pseed = 16820416;//0x0100007F;
                 // lcrypt.pseed = ((pckFirstPacket[0] << 24) | (pckFirstPacket[1] <<16) | (pckFirstPacket[2] << 8) | (pckFirstPacket[3]));
                 lcrypt.initlogin();
-               System.out.println(lcrypt.m_key[0] + "SPACE" + lcrypt.m_key[1]);
+                System.out.println(printPacketHex(loginPacket));
+               //System.out.println(lcrypt.m_key[0] + "SPACE" + lcrypt.m_key[1]);
                 byte tempbyte[] = lcrypt.encrypt(loginPacket, loginPacket.length);
-		System.out.println(printPacketHex(tempbyte));
+		lcrypt.initlogin();
+                System.out.println(printPacketHex(tempbyte));
                 write(tempbyte);
+                byte tempbyte2[] = lcrypt.encrypt(tempbyte, tempbyte.length);
+                System.out.println("DECODED " + printPacketHex(tempbyte2));
                 }
                 else {
                     write(loginPacket);
@@ -921,7 +925,7 @@ public class UONetworking2 implements Runnable
 			charPacket[i + 69] = localAddress[i];
 
 		write(charPacket);
-		sendClient("3.0.0.a");
+		sendClient("2.0.3");
 	}
 
 	private void sendClient(String client)
