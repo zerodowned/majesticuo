@@ -118,13 +118,13 @@ public class UOConsoleClient implements Runnable, UOPacketOperation
 			br = new BufferedReader(new InputStreamReader(System.in));
 
 
-                         ip = "24.89.90.235";
-                        port = 2593;
+
+                        ip = "24.89.90.235";
+                        port = 2594;
                         user = "";
                         pass= "";
-                       
                         ip  = "192.168.1.40";
-                        port = 2593;
+                        port = 2594;
                         user = "admin";
                         pass = "admin";
 
