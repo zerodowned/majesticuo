@@ -1,0 +1,8 @@
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\bin\Release\drkuo.exe
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\bin\Release\drkuo.pdb
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\ResolveAssemblyReference.cache
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\drkuo.drkGui.resources
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\drkuo.Properties.Resources.resources
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\drkuo.csproj.GenerateResource.Cache
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\drkuo.exe
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Release\drkuo.pdb
