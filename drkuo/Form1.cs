@@ -28,7 +28,12 @@ namespace drkuo
         private void timer1_Tick(object sender, EventArgs e)
         {
             txtOutput.Text = uonet.myoutput;
-            txtVarwindow.Text = uonet.myvars;
+            //txtVarwindow.Text = uonet.myvars;
+            if (uonet.mystate.buffer != null)
+            {
+                txtVarwindow.Text = BitConverter.ToString(uonet.mystate.buffer);
+            }
+        
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -41,7 +46,9 @@ namespace drkuo
             mythread = new Thread(new ThreadStart(uonet.main));
             mythread.IsBackground = true;
             mythread.Start();
+            timer1.Interval = 100;
             timer1.Start();
+            
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)

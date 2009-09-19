@@ -49,10 +49,11 @@
             // 
             // txtOutput
             // 
-            this.txtOutput.Location = new System.Drawing.Point(12, 330);
+            this.txtOutput.Location = new System.Drawing.Point(12, 165);
             this.txtOutput.Multiline = true;
             this.txtOutput.Name = "txtOutput";
-            this.txtOutput.Size = new System.Drawing.Size(709, 133);
+            this.txtOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtOutput.Size = new System.Drawing.Size(709, 298);
             this.txtOutput.TabIndex = 0;
             // 
             // timer1
