@@ -28,11 +28,8 @@ namespace drkuo
         private void timer1_Tick(object sender, EventArgs e)
         {
             txtOutput.Text = uonet.myoutput;
-            //txtVarwindow.Text = uonet.myvars;
-            if (uonet.mystate.buffer != null)
-            {
-                txtVarwindow.Text = BitConverter.ToString(uonet.mystate.buffer);
-            }
+            txtVarwindow.Text = uonet.myvars;
+            
         
         }
 
@@ -58,6 +55,11 @@ namespace drkuo
                 mythread.Abort();
             }
             this.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            
         }       
     }
 }

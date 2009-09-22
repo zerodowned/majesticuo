@@ -47,7 +47,7 @@ namespace drkuo
             port = p;
             this.user = usera;
             this.pass = passa;
-            charslot = cslot;
+            charslot = (cslot - 1);
            // packops = uoi;
 
 
@@ -147,6 +147,9 @@ namespace drkuo
                     case UOopcodes.SMSG_CharList://0xA9:
                         handleCharactersStartingLocations(packetinfo);
                         break;
+                    case UOopcodes.SMSG_CharLocAndBody://0xA9:
+                        handleCharLocAndBody(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + cmd2);
                         break;
@@ -156,6 +159,20 @@ namespace drkuo
             
             catch
             { }
+        }
+
+        private void handleCharLocAndBody(byte[] buffer)
+        {
+            display("Handling Character Location and Body");
+            byte[] charLoc = new byte[37];
+		for (int i = 0; i < charLoc.Length; i++)
+			charLoc[i] = buffer[i];
+		player.serial = (((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4])));
+		player.type = ((charLoc[9] <<8 | charLoc[10] &0xFF));
+                player.x = (((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
+		player.y = (((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
+		player.z = (((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
+        updatevars();
         }
 
         private void handleCharactersStartingLocations(byte[] buffer)
@@ -305,7 +322,7 @@ namespace drkuo
         }
         public void updatevars()
         {
-            myvars = myvars + "omg vars :o";
+            myvars = ("Player ID: " + player.serial + "\r\nPlayer Type: " + player.type + "\r\nPlayer X: " + player.x + " \r\nPlayer Y: " + player.y);
         }
         public void Connect()
         {    
