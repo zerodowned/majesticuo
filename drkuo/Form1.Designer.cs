@@ -44,6 +44,8 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtVarwindow = new System.Windows.Forms.TextBox();
+            this.txtCharSlot = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -172,11 +174,29 @@
             this.txtVarwindow.Size = new System.Drawing.Size(152, 433);
             this.txtVarwindow.TabIndex = 11;
             // 
+            // txtCharSlot
+            // 
+            this.txtCharSlot.Location = new System.Drawing.Point(276, 32);
+            this.txtCharSlot.Name = "txtCharSlot";
+            this.txtCharSlot.Size = new System.Drawing.Size(52, 20);
+            this.txtCharSlot.TabIndex = 12;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(198, 36);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(72, 13);
+            this.label5.TabIndex = 13;
+            this.label5.Text = "Character slot";
+            // 
             // drkGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(888, 475);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.txtCharSlot);
             this.Controls.Add(this.txtVarwindow);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -216,6 +236,8 @@
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.TextBox txtVarwindow;
+        private System.Windows.Forms.TextBox txtCharSlot;
+        private System.Windows.Forms.Label label5;
     }
 }
 

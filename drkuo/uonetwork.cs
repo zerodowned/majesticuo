@@ -35,17 +35,19 @@ namespace drkuo
         private int port;
         private String user;
         private String pass;
+        private int charslot;
         private byte[] recbuffer;
 
 
-        public uonetwork(String i, int p, String usera, String passa)
+        public uonetwork(String i, int p, String usera, String passa, int cslot)
         {
             //, uointerface uoi
-           // BinaryNode.CreateTree();
+            BinaryNode.CreateTree();
             ip = i;
             port = p;
             this.user = usera;
             this.pass = passa;
+            charslot = cslot;
            // packops = uoi;
 
 
@@ -83,25 +85,44 @@ namespace drkuo
             ArrayList incomingpackets = new ArrayList();
             incomingpackets.AddRange(newstate.buffer);
             byte[] outbuffer;
-            int refsize = 0;
-            while (newstate.avail > 0)
+
+            while (incomingpackets.Count > 0)
             {
                 if (bDecompress)
                 {
-                    decomp.DecompressOnePacket(ref newstate.buffer, newstate.buffer.Length, ref newstate.decomp, ref refsize);
+                    outbuffer = new byte[incomingpackets.Count];
+                    huffmanobject myhuf = new huffmanobject();
+                    myhuf.buffer = (byte[])incomingpackets.ToArray(typeof(byte));
+                    myhuf.src_size = incomingpackets.Count;
+                    myhuf.out_size = 0;
+                    myhuf = BinaryNode.drkDecompress(myhuf);
+
                     // store incoming packet in an arraylist
                     // decompress it etc, then xfer to byte[] and remove from list
                     // repeat
-                    outbuffer = newstate.decomp;
-                }
-                else
-                {
-                    outbuffer = newstate.buffer;
-                }
+                    outbuffer = myhuf.output;
+                    if (outbuffer.Length < 1) { incomingpackets.Clear(); break; }
+                    if (myhuf.buffer.Length > outbuffer.Length)
+                    {
+                        display("consuming: " + myhuf.out_size + " bytes");
+                        //for (int x = 0; x < outbuffer.Length; x++) { aOutput.add(temp[x]); } // outputs the packet
+                        for (int x = 0; x < (myhuf.out_size + 1); x++) { incomingpackets.RemoveAt(0); } // removes it from queue
+                    }else {
+                        incomingpackets.Clear();
+                    }
 
-                handlePackets(outbuffer);
+                }
+       
+                    else
+                    {
+                        outbuffer = newstate.buffer;
+                        incomingpackets.Clear(); // << TEMP REMOVE AFTER
+                    }
+
+                    handlePackets(outbuffer);
+                }
             }
-        }
+      
 
         private void handlePackets(byte[] packetinfo)
         {
@@ -120,8 +141,14 @@ namespace drkuo
                         handleConnectToGameServer(packetinfo);
                         bDecompress = true;
                         break;
+                    case UOopcodes.SMSG_ClientFeatures://0xB9:
+                        handleClientFeatures();
+                        break;
+                    case UOopcodes.SMSG_CharList://0xA9:
+                        handleCharactersStartingLocations(packetinfo);
+                        break;
                     default:
-                        Console.WriteLine("Default case");
+                        display("UnknownPacket: " + cmd2);
                         break;
                 }
 
@@ -129,6 +156,69 @@ namespace drkuo
             
             catch
             { }
+        }
+
+        private void handleCharactersStartingLocations(byte[] buffer)
+        {
+            String[] charList = new String[1];
+            String charName = "";
+		int numOfChars = 0;
+		if (buffer.Length > 4) numOfChars = (buffer[3] & 0xFF);
+		else { display("Char List Error"); }
+		charList = new String[numOfChars];
+		for (int i = 0; i < numOfChars; i++)
+		{
+			//String charName = "";
+			for (int j = 0; j < 30; j++)
+				if ((buffer[(i * 60) + j + 4]) != 0x00)
+					charName = charName + (char)buffer[(i * 60) + j + 4];
+			charList[i] = charName;
+		}
+        chooseChar(charName, charslot);
+        }
+
+        public void chooseChar(String character, int slot)
+	{
+		byte[] charPacket = new byte[73];
+		byte[] charName = GetBytes(character);
+		charPacket[0] = UOopcodes.CMSG_LoginChar;
+		charPacket[1] = (byte)0xED;
+		charPacket[2] = (byte)0xED;
+		charPacket[3] = (byte)0xED;
+		charPacket[4] = (byte)0xED;
+		for (int i = 0; i < charName.Length; i++)
+			charPacket[i + 5] = (byte)charName[i];
+		charPacket[68] = (byte)slot;
+            // temp fix just sends 127.0.0.1
+        byte[] localAddress = { 0x7F, 0x00, 0x00, 0x01 };//new byte[4];
+        //localAddress = mysocket.LocalEndPoint;//(client.getLocalAddress()).getAddress();
+		for (int i = 0; i < localAddress.Length; i++)
+			charPacket[i + 69] = localAddress[i];
+
+		Send(charPacket);
+		sendClient("2.0.3");
+	}
+
+        private void sendClient(string p)
+        {
+            byte[] clientver = GetBytes(p);
+            byte[] clientPacket = new byte[clientver.Length + 4];
+            clientPacket[0] = UOopcodes.CMSG_ClientVersion;
+
+		clientPacket[1] = (byte)(clientPacket.Length >>8);
+		clientPacket[2] = (byte)clientPacket.Length;
+		for (int i = 0; i < clientver.Length; i++)
+			clientPacket[i + 3] = clientver[i];
+
+		Send(clientPacket);
+        }
+
+
+        private void handleClientFeatures()
+        {
+            display("Client Features received");
+            // todo display which features are enabled/disabled
+            // bitflags are beyond me atm
         }
 
         private void handleConnectToGameServer(byte[] buffer)
