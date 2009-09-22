@@ -42,7 +42,7 @@ namespace drkuo
             user = txtUsername.Text;
             pass = txtPassword.Text;
             port = Convert.ToInt32(txtPort.Text);
-            uonet = new uonetwork(ip, port, user, pass);         
+            uonet = new uonetwork(ip, port, user, pass,Convert.ToInt32(txtCharSlot.Text));         
             mythread = new Thread(new ThreadStart(uonet.main));
             mythread.IsBackground = true;
             mythread.Start();
@@ -53,7 +53,10 @@ namespace drkuo
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            mythread.Abort();
+            if (mythread.IsAlive)
+            {
+                mythread.Abort();
+            }
             this.Close();
         }       
     }

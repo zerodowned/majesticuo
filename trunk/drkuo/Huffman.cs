@@ -52,7 +52,7 @@
         public BinaryNode Right = null;
 
         static BinaryNode m_Tree = null;
-        static void CreateTree()
+        public static void CreateTree()
         {
             m_Tree = new BinaryNode();
             int nrBits = 0, val = 0;
