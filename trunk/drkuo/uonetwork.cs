@@ -30,7 +30,7 @@ namespace drkuo
         private Socket mysocket;
         public StateObject mystate;
 
-        HuffmanDecompression decomp = new HuffmanDecompression();
+        //HuffmanDecompression decomp = new HuffmanDecompression();
         private String ip;
         private int port;
         private String user;
@@ -131,7 +131,7 @@ namespace drkuo
             {
                 int cmd = Convert.ToInt32(packetinfo[0]);
                 string cmd2 = Convert.ToString(packetinfo[0]);
-                display("Received >> " + BitConverter.ToString(packetinfo));
+                //display("Received >> " + BitConverter.ToString(packetinfo));
                 switch(cmd)
                 {
                     case UOopcodes.SMSG_GameServerList://0xA8:
@@ -150,8 +150,11 @@ namespace drkuo
                     case UOopcodes.SMSG_CharLocAndBody://0xA9:
                         handleCharLocAndBody(packetinfo);
                         break;
+                    case UOopcodes.SMSG_DrawGamePlayer://0x20
+                        handleDrawGamePlayer(packetinfo);
+                        break;
                     default:
-                        display("UnknownPacket: " + cmd2);
+                        display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
                 }
 
@@ -159,6 +162,20 @@ namespace drkuo
             
             catch
             { }
+        }
+
+        private void handleDrawGamePlayer(byte[] packetinfo)
+        {
+            display("Handling Draw Game Player");
+            player.serial = (((packetinfo[1] <<24) | (packetinfo[2] <<16) | (packetinfo[3] <<8) | (packetinfo[4])));
+            player.type = ((packetinfo[5] <<8) | (packetinfo[6]) & 0xFF);
+            // 7 is unknown
+            player.hue = ((packetinfo[8] << 8) | (packetinfo[9]) & 0xFF);
+            player.flags = packetinfo[10];
+            player.x = ((packetinfo[11] <<8) | (packetinfo[12]) & 0xFF);
+            player.y = ((packetinfo[13] <<8) | (packetinfo[14]) & 0xFF);
+            player.z = (packetinfo[18]);
+            updatevars();
         }
 
         private void handleCharLocAndBody(byte[] buffer)
@@ -322,7 +339,7 @@ namespace drkuo
         }
         public void updatevars()
         {
-            myvars = ("Player ID: " + player.serial + "\r\nPlayer Type: " + player.type + "\r\nPlayer X: " + player.x + " \r\nPlayer Y: " + player.y);
+            myvars = ("Player ID: " + player.serial + "\r\nPlayer Type: " + player.type + "\r\nPlayer X: " + player.x + " \r\nPlayer Y: " + player.y + "\r\nPlayer Flags: " + player.flags);
         }
         public void Connect()
         {    
@@ -337,6 +354,31 @@ namespace drkuo
             {
                 display("Connection Failed");
             }
+        }
+
+        private static byte[] intToByteArray(int value)
+        {
+            return new byte[] {
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
+                (byte)value};
+        }
+
+         public void GetPlayerStatus() {
+            byte[] status = new byte[10];
+            status[0] = UOopcodes.CMSG_GetPlayerStatus;
+            status[1] = (byte)0xED;
+            status[2] = (byte)0xED;
+            status[3] = (byte)0xED;
+            status[4] = (byte)0xED;
+            status[5] = (byte)0x04; // 0x05 is request skills? 0x3a
+             byte[] temp = intToByteArray(player.serial);
+              status[6] = temp[0];
+            status[7] = temp[1];
+            status[8] = temp[2];
+            status[9] = temp[3];
+            Send(status);
         }
 
     }

@@ -47,6 +47,7 @@
             this.txtCharSlot = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.Pingtimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -202,6 +203,10 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // Pingtimer
+            // 
+            this.Pingtimer.Tick += new System.EventHandler(this.Pingtimer_Tick);
+            // 
             // drkGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -252,6 +257,7 @@
         private System.Windows.Forms.TextBox txtCharSlot;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Timer Pingtimer;
     }
 }
 
