@@ -27,6 +27,7 @@ namespace drkuo
     public int str;
     public int dex;
     public int flags;
+    public int hue;
     }
     class uoobject
     {

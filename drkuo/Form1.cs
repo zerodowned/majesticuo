@@ -45,6 +45,8 @@ namespace drkuo
             mythread.Start();
             timer1.Interval = 100;
             timer1.Start();
+            Pingtimer.Interval = 30000;
+            Pingtimer.Start();
             
         }
 
@@ -59,7 +61,15 @@ namespace drkuo
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
+            uonet.GetPlayerStatus();
+        }
+
+        private void Pingtimer_Tick(object sender, EventArgs e)
+        {
+            byte[] pingpacket = new byte[2];
+                    pingpacket[0] = 0x73;
+                    pingpacket[1] = 0x00;
+                    uonet.Send(pingpacket);
         }       
     }
 }
