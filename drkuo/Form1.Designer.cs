@@ -170,10 +170,10 @@
             // 
             // txtVarwindow
             // 
-            this.txtVarwindow.Location = new System.Drawing.Point(723, 30);
+            this.txtVarwindow.Location = new System.Drawing.Point(723, 36);
             this.txtVarwindow.Multiline = true;
             this.txtVarwindow.Name = "txtVarwindow";
-            this.txtVarwindow.Size = new System.Drawing.Size(152, 433);
+            this.txtVarwindow.Size = new System.Drawing.Size(152, 427);
             this.txtVarwindow.TabIndex = 11;
             // 
             // txtCharSlot
@@ -197,9 +197,9 @@
             // 
             this.button1.Location = new System.Drawing.Point(195, 136);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.Size = new System.Drawing.Size(102, 23);
             this.button1.TabIndex = 14;
-            this.button1.Text = "button1";
+            this.button1.Text = "Get Player Status";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 

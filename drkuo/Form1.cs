@@ -29,6 +29,7 @@ namespace drkuo
         {
             txtOutput.Text = uonet.myoutput;
             txtVarwindow.Text = uonet.myvars;
+            //lsVars.Items.Add("Name: " + uonet.player.name);
             
         
         }
