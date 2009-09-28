@@ -19,6 +19,7 @@ namespace drkuo
 {
     class uonetwork
     {
+        public bool bConnected = false;
         private byte[] key = new byte[4];
         private Boolean bDecompress = false;
         public String myoutput = "";
@@ -52,7 +53,7 @@ namespace drkuo
             // Entry point for network thread
             Connect();
             Thread.Sleep(500);
-            if (mysocket.Connected) { Login(); display("Connected!"); }
+            if (mysocket.Connected) { Login(); display("Connected!"); bConnected = true; }
             while (mysocket.Connected)
             {
                 if (mysocket.Available > 0)
@@ -232,9 +233,6 @@ namespace drkuo
         chooseChar(charName, charslot);
         }
 
-        
-
-
         private void handleClientFeatures()
         {
             display("Client Features received");
@@ -277,30 +275,17 @@ namespace drkuo
         }
        
 
-        private static byte[] intToByteArray(int value)
+        public static byte[] intToByteArray(int value)
         {
             return new byte[] {
                 (byte)(value >> 24),
                 (byte)(value >> 16),
                 (byte)(value >> 8),
                 (byte)value};
+            
         }
 
-         public void GetPlayerStatus() {
-            byte[] status = new byte[10];
-            status[0] = UOopcodes.CMSG_GetPlayerStatus;
-            status[1] = (byte)0xED;
-            status[2] = (byte)0xED;
-            status[3] = (byte)0xED;
-            status[4] = (byte)0xED;
-            status[5] = (byte)0x04; // 0x05 is request skills? 0x3a
-             byte[] temp = intToByteArray(player.serial);
-              status[6] = temp[0];
-            status[7] = temp[1];
-            status[8] = temp[2];
-            status[9] = temp[3];
-            Send(status);
-        }
+        
          private void handleConnectToGameServer(byte[] buffer)
          {
              display("Handling Connect to Game Server");
@@ -394,7 +379,6 @@ namespace drkuo
              Send(charPacket);
              sendClient("2.0.3");
          }
-
          private void sendClient(string p)
          {
              byte[] clientver = GetBytes(p);

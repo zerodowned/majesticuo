@@ -78,7 +78,7 @@ namespace drkuo
         public const int CMSG_MoveRequest = 0x02;
         public const int CMSG_TalkRequest = 0x03;
         public const int CMSG_RequestAttack = 0x05;
-        public const int CMSG_RequestSkills = 0x12;
+        public const int CMSG_RequestSkilluse = 0x12;
         public const int CMSG_DropWearitem = 0x13;
         public const int CMSG_BuyItems = 0x3B;
         public const int CMSG_RequestWarMode = 0x72;
