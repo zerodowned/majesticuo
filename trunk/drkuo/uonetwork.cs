@@ -19,6 +19,7 @@ namespace drkuo
 {
     class uonetwork
     {
+        public Hashtable GameObjects = new Hashtable();
         public bool bConnected = false;
         private byte[] key = new byte[4];
         private Boolean bDecompress = false;
@@ -145,6 +146,9 @@ namespace drkuo
                     case UOopcodes.SMSG_StatusBarInfo://0x11
                         handleStatusBarInfo(packetinfo);
                         break;
+                    case UOopcodes.SMSG_DrawObject://0x78
+                        handleDrawObject(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
@@ -155,6 +159,33 @@ namespace drkuo
             catch
             { }
         }
+        private void handleDrawObject(byte[] incMobile)
+        {
+            // Draw object really means draw mobile
+            // May want to move mobiles to their own list? rather than item list
+            uoobject myobject = new uoobject();
+             myobject.serial = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6]));
+             myobject.type = ((incMobile[7] <<8) | (incMobile[8] & 0xFF));
+             myobject.x = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
+             myobject.y = ((incMobile[11] <<8) | (incMobile[12] & 0xFF));
+             myobject.z = incMobile[13];
+             myobject.color = ((incMobile[14] <<8) | (incMobile[15]));
+            
+             // store the id in a 2nd array, if the id is found we update the data, if not we replace
+             
+            if(GameObjects.ContainsKey(myobject.serial))
+            {
+                GameObjects.Remove(myobject.serial);
+                GameObjects.Add(myobject.serial,myobject);
+            }
+            else
+            {
+                GameObjects.Add(myobject.serial,myobject);
+            }
+             display("Drawn Object ID: " + myobject.serial + " type: " + myobject.type + "X: " + myobject.x + "Y: " + myobject.y);
+        }
+
+
         private void handleStatusBarInfo(byte[] status)
         {
             display("Handling Status Bar Info");
