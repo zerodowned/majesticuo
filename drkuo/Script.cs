@@ -15,7 +15,8 @@ namespace drkuo
 
         public void main()
         {
-            uonet.display("Script Ran");
+            uoobject tempob = (uoobject)uonet.GameObjects[3];
+            uonet.display(tempob.x + " !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
     }
 }
