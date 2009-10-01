@@ -37,8 +37,8 @@ namespace drkuo
         private void timer1_Tick(object sender, EventArgs e)
         {
             txtOutput.Text = uonet.myoutput;
-            txtOutput.Select(txtOutput.Text.Length, 0);
-            txtOutput.ScrollToCaret();
+           // txtOutput.Select(txtOutput.Text.Length, 0);
+            //txtOutput.ScrollToCaret();
             txtVarwindow.Text = uonet.myvars;
             //lsVars.Items.Add("Name: " + uonet.player.name);
             
