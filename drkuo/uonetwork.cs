@@ -1,4 +1,15 @@
-﻿using System;
+﻿/*
+Written by James Kidd.
+ * 
+ * ToDo, Replace arraylist packet handler with stream.
+ * Add packet size etc and check complete packet is recieved, rather than hoping
+ * Better way than beginreceive?? breaking packets? maybe its splitting them
+ * 
+ * Possible fix is add every packet and its size to a list, then when packets come in,
+ * check opcode against size, unknown opcodes etc would be left in a buffer
+ * to wait for more data.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,19 +30,16 @@ namespace drkuo
 {
     class uonetwork
     {
+        public uoplayer player = new uoplayer();
         public Hashtable GameObjects = new Hashtable();
         public bool bConnected = false;
-        private byte[] key = new byte[4];
-        private Boolean bDecompress = false;
         public String myoutput = "";
         public string myvars = "";
-        public uoplayer player = new uoplayer();
-       // public uoobject drawdata; // rename?
 
+        private byte[] key = new byte[4];
+        private Boolean bDecompress = false;
         private Socket mysocket;
-        public StateObject mystate;
-
-        //HuffmanDecompression decomp = new HuffmanDecompression();
+        private StateObject mystate;
         private String ip;
         private int port;
         private String user;
@@ -63,6 +71,7 @@ namespace drkuo
                     mystate.decomp = new byte[mysocket.Available];
                     mystate.avail = mysocket.Available;
                     //display("data avail");
+                    
                     mysocket.BeginReceive(mystate.buffer, 0, mysocket.Available, SocketFlags.None, PacketReceived, mystate);
                 }
             }
@@ -149,6 +158,120 @@ namespace drkuo
                     case UOopcodes.SMSG_DrawObject://0x78
                         handleDrawObject(packetinfo);
                         break;
+                    case UOopcodes.SMSG_UpdatePlayer://0x77
+                        handleUpdatePlayer(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_ObjectInfo://0x77
+                        handleObjectInfo(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_SetWeather:
+                        handleSetWeather(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_KickPlayer:
+                        handleKickPlayer();
+                        break;
+                    case UOopcodes.SMSG_Deleteobject:
+                        handleDeleteObject(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_AddItemToContainer:
+                        handleAddItemToContainer(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_AddmultipleItemsInContainer:
+                        handleAddMultipleItemsInContainer(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_AllowRefuseAttack:
+                        handleAllowRefuseAttack(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_AttackOK:
+                        handleAttackOK(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_Blood:
+                        handleBlood(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_CharacterAnimation:
+                        handleCharAnimation(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_CharMoveRejection:
+                        handleCharMoveRejection(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_CliocMessage:
+                        handleCliocMessage(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_Damage:
+                        handleDamage(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_DraggingOfItem:
+                        handleDraggingOfItem(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_DrawContainer:
+                        handleDrawContainer(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_DropItemApproved:
+                        handleDropItemApproved(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_FightOccuring:
+                        handleFightOccuring(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_GeneralInformation:
+                        handleGeneralInformation(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_GraphicalEffect:
+                        handleGraphicalEffect(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_GumpTextEntryDialog:
+                        handleGumpTextEntryDialog(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_IdleWarning:
+                        handleIdleWarning(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_MobAttribute:
+                        handleMobAttribute(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_MovePlayer:
+                        handleMovePlayer(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_OpenBuyWindow:
+                        handleOpenBuyWindow(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_OpenDialogBox:
+                        handleOpenDialogBox(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_OpenPaperdoll:
+                        handleOpenPaperDoll(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_OverallLightLevel:
+                        handleOverallLightLevel(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_PersonalLightLevel:
+                        handlePersonalLightLevel(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_PlaySoundEffect:
+                        handlePlaySoundEffect(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_RejectMoveItemRequest:
+                        handleRejectMoveItemRequest(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_SellList:
+                        handleSellList(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_SendGumpMenuDialog:
+                        handleSendGumpMenuDialog(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_ServerChat:
+                        handleServerChat(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_UpdateCurrentHealth:
+                        handleUpdateCurrentHealth(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_UpdateCurrentMana:
+                        handleUpdateCurrentMana(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_UpdateCurrentStamina:
+                        handleUpdateCurrentStamina(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_WornItem:
+                        handleWornItem(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
@@ -159,6 +282,309 @@ namespace drkuo
             catch
             { }
         }
+
+        private void handleGeneralInformation(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleWornItem(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleUpdateCurrentStamina(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleUpdateCurrentMana(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleUpdateCurrentHealth(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleServerChat(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleSendGumpMenuDialog(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleSellList(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleRejectMoveItemRequest(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handlePlaySoundEffect(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handlePersonalLightLevel(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleOverallLightLevel(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleOpenPaperDoll(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleOpenDialogBox(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleOpenBuyWindow(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleMovePlayer(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleMobAttribute(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleIdleWarning(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleGumpTextEntryDialog(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleGraphicalEffect(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleFightOccuring(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleDropItemApproved(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleDrawContainer(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleDraggingOfItem(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleDamage(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleCliocMessage(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleCharMoveRejection(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleCharAnimation(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleBlood(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleAttackOK(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleAllowRefuseAttack(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleAddMultipleItemsInContainer(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleAddItemToContainer(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+         private void handleDeleteObject(byte[] myobj) {
+            if (myobj.Length != 5)
+            {
+                display("Packet length wrong for delete object");
+                return;
+            }
+            int serial = (( myobj[1] <<24) | ( myobj[2] <<16) | ( myobj[3] <<8) | ( myobj[4]));
+             if (GameObjects.ContainsKey(serial))
+             {
+                 GameObjects.Remove(serial);
+             }
+             else
+             {
+                 display("Object delete ignored, not found");
+             }
+
+
+
+        }
+
+        private void handleKickPlayer()
+        {
+            display("Player Kicked");
+
+        }
+        private void handleSetWeather(byte[] weather)
+        {
+         int weathertype = weather[1];
+         //int weathernum = weather[2];
+
+         switch(weathertype & 0xFF)
+         {
+             case 0:
+                 display("It begins to rain");
+                 break;
+             case 1:
+                  display("A Fierce Storm!");
+                 break;
+             case 2:
+                  display("It begins to snow");
+                 break;
+             case 3:
+                 display("A Storm is Brewing");
+                 break;
+             case 254:
+                 display("0xFE recived unknown weather");
+                 break;
+             default:
+                 display("Unknown weather: " + (weathertype & 0xFF));
+                 break;
+         }
+        }
+
+
+       private void handleObjectInfo(byte[] incMobile)
+       {
+            // This should be all correct
+            // need to remove 8000000 from ID
+            uoobject tmpob = new uoobject();
+            int offset = 0;
+            int direction = 0;                                   
+             tmpob.serial = ((incMobile[3] <<24) | (incMobile[4] <<16) | (incMobile[5] <<8) | (incMobile[6] & 0xFF));
+             tmpob.type = (incMobile[7] << 8) | (incMobile[8] & 0xFF);
+             if ((tmpob.serial & 0x80000000) == 0x80000000)
+             {
+                 tmpob.stack = ((incMobile[9] <<8) | (incMobile[10] & 0xFF));
+                 //int temp2 = (incMobile[4] & 0x7F);
+                  tmpob.serial = (tmpob.serial & 0x7FFFFF);
+                  // Removes the 8000000 if its found
+             offset = offset + 2;
+             }
+             if ((tmpob.type & 0x8000) == 0x8000) {
+                 offset = offset + 1;
+             }
+            tmpob.x = ((incMobile[9 + offset] <<8) | (incMobile[10 + offset] & 0xFF));
+            int temp = (incMobile[11 + offset] & 0xF);
+             tmpob.y = ((temp << 8) | (incMobile[12 + offset] & 0xFF));
+
+             if ((tmpob.x & 0x8000) == 0x8000)
+             {
+                 direction = incMobile[13 + offset];
+                 offset = offset + 1;
+             }
+             tmpob.z = incMobile[13 + offset];
+             if ((tmpob.y & 0x8000) == 0x8000)
+             {
+                 tmpob.color = ((incMobile[14 + offset] <<8) | (incMobile[15 + offset] & 0xFF));
+             offset = offset + 2;
+             }
+             if ((tmpob.y & 0x4000) == 0x4000)
+             {
+                 tmpob.flags = incMobile[14 + offset];
+             }
+             if (GameObjects.ContainsKey(tmpob.serial))
+             {
+                 GameObjects.Remove(tmpob.serial);
+                 GameObjects.Add(tmpob.serial, tmpob);
+             }
+             else
+             {
+                 GameObjects.Add(tmpob.serial, tmpob);
+             }
+           display("Object Info: " + tmpob.serial + " type: " + tmpob.type + "X: " + tmpob.x + "Y: " + tmpob.y);
+
+        }
+
+        private void handleUpdatePlayer(byte[] buffer)
+	{
+            uoobject tmpob = new uoobject();
+         tmpob.serial = (buffer[4] & 0xFF) | ((buffer[3] & 0xFF) << 8) | ((buffer[2] & 0xFF) << 16) | ((buffer[1] & 0xFF) << 24);
+		tmpob.type = (buffer[6] & 0xFF) | ((buffer[5] & 0xFF) << 8);
+		tmpob.x = (buffer[8] & 0xFF) | ((buffer[7] & 0xFF) << 8);
+		tmpob.y = (buffer[10] & 0xFF) | ((buffer[9] & 0xFF) << 8);
+		tmpob.z = (buffer[11] & 0xFF);
+		int direction = (buffer[12] & 0xFF);
+		tmpob.color = (buffer[14] & 0xFF) | ((buffer[13] & 0xFF) << 8);
+		int flag = (buffer[15] & 0xFF);
+		int highlightColor = (buffer[16] & 0xFF);
+
+        if (GameObjects.ContainsKey(tmpob.serial))
+            {
+                GameObjects.Remove(tmpob.serial);
+                GameObjects.Add(tmpob.serial, tmpob);
+            }
+            else
+            {
+                GameObjects.Add(tmpob.serial, tmpob);
+            }
+                if (tmpob.serial == player.serial)
+                {
+                    player.x = tmpob.x;
+                    player.y = tmpob.y;
+                    player.z = tmpob.z;
+                }
+                display("Update Player ID: " + tmpob.serial + " type: " + tmpob.type + "X: " + tmpob.x + "Y: " + tmpob.y);
+	
+	}
+
         private void handleDrawObject(byte[] incMobile)
         {
             // Draw object really means draw mobile

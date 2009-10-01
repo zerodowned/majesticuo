@@ -38,5 +38,6 @@ namespace drkuo
         public int z;
         public int color;
         public int stack;
+        public int flags;
     }
 }
