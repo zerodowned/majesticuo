@@ -63,6 +63,7 @@ namespace drkuo
             Connect();
             Thread.Sleep(500);
             if (mysocket.Connected) { Login(); display("Connected!"); bConnected = true; }
+            mysocket.DontFragment = true;
             while (mysocket.Connected)
             {
                 if (mysocket.Available > 0)
