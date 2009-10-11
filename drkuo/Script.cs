@@ -18,5 +18,7 @@ namespace drkuo
             uoobject tempob = (uoobject)uonet.GameObjects[3];
             uonet.display(tempob.x + " !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
+
+
     }
 }

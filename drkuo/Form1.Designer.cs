@@ -43,11 +43,13 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.txtVarwindow = new System.Windows.Forms.TextBox();
             this.txtCharSlot = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.Pingtimer = new System.Windows.Forms.Timer(this.components);
+            this.button2 = new System.Windows.Forms.Button();
+            this.vartree = new System.Windows.Forms.TreeView();
+            this.button3 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -67,7 +69,7 @@
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(106, 136);
+            this.btnConnect.Location = new System.Drawing.Point(12, 136);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(75, 23);
             this.btnConnect.TabIndex = 1;
@@ -168,14 +170,6 @@
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
-            // txtVarwindow
-            // 
-            this.txtVarwindow.Location = new System.Drawing.Point(723, 36);
-            this.txtVarwindow.Multiline = true;
-            this.txtVarwindow.Name = "txtVarwindow";
-            this.txtVarwindow.Size = new System.Drawing.Size(152, 427);
-            this.txtVarwindow.TabIndex = 11;
-            // 
             // txtCharSlot
             // 
             this.txtCharSlot.Location = new System.Drawing.Point(276, 32);
@@ -195,7 +189,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(195, 136);
+            this.button1.Location = new System.Drawing.Point(174, 136);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(102, 23);
             this.button1.TabIndex = 14;
@@ -207,15 +201,44 @@
             // 
             this.Pingtimer.Tick += new System.EventHandler(this.Pingtimer_Tick);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(93, 136);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 15;
+            this.button2.Text = "Disconnect";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // vartree
+            // 
+            this.vartree.Location = new System.Drawing.Point(723, 27);
+            this.vartree.Name = "vartree";
+            this.vartree.Size = new System.Drawing.Size(153, 436);
+            this.vartree.TabIndex = 16;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(317, 136);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 17;
+            this.button3.Text = "test";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // drkGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(888, 475);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.vartree);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtCharSlot);
-            this.Controls.Add(this.txtVarwindow);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -253,11 +276,13 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.TextBox txtVarwindow;
         private System.Windows.Forms.TextBox txtCharSlot;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Timer Pingtimer;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TreeView vartree;
+        private System.Windows.Forms.Button button3;
     }
 }
 
