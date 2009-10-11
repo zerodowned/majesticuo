@@ -671,7 +671,9 @@ namespace drkuo
              if ((tmpob.type & 0x8000) == 0x8000) {
                  offset = offset + 1;
              }
+            
             tmpob.x = ((incMobile[9 + offset] <<8) | (incMobile[10 + offset] & 0xFF));
+            tmpob.x = (tmpob.x & 0x7FFF);
             int temp = (incMobile[11 + offset] & 0xF);
              tmpob.y = ((temp << 8) | (incMobile[12 + offset] & 0xFF));
 
@@ -699,7 +701,7 @@ namespace drkuo
              {
                  GameObjects.Add(tmpob.serial, tmpob);
              }
-           display("Object Info: " + tmpob.serial + " type: " + tmpob.type + "X: " + tmpob.x + "Y: " + tmpob.y);
+           display("Object Info ID: " + tmpob.serial + " Type: " + tmpob.type + "X: " + tmpob.x + "Y: " + tmpob.y);
 
         }
 
