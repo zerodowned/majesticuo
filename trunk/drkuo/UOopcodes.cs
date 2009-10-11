@@ -16,6 +16,8 @@ namespace drkuo
         public const int MSG_SecureTrading = 0x6F;
         public const int MSG_AllNames = 0x98;
         public const int MSG_SendSpeach = 0x1C;
+        public const int MSG_ClientVersion = 0xBD;
+        public const int MSG_RequestWarMode = 0x72;
         // Packets sent from the server
         public const int SMSG_GameServlist = 0xA8;
         public const int SMSG_DrawObject = 0x78;
@@ -65,6 +67,10 @@ namespace drkuo
         public const int SMSG_CharList = 0xA9;
         public const int SMSG_GameServerList = 0xA8;
         public const int SMSG_ServerChat = 0xAE;
+        public const int SMSG_Time = 0x5B;
+        public const int SMSG_SEintroducedRevision = 0xDC;
+        public const int SMSG_Seasonalinformation = 0xBC;
+
 
         // Packets sent only via client
         public const int CMSG_GetPlayerStatus = 0x34;

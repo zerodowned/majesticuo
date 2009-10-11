@@ -113,8 +113,6 @@
                         if(val == 256){
                                                 return retval;
                                             }
-							
-
                         byte[] temp = new byte[retval.Length + 1];
                         //retval.CopyTo(temp, 0);
                         //temp[0] = retval;
@@ -178,7 +176,7 @@
 
             for(int i = 0; i < source.Length; i++)
             {
-                        mysource.out_size = i;
+                mysource.out_size = i;
                 current = source[i];
 
                 for(int n = 7; n >= 0; n--)

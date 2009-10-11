@@ -19,6 +19,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections;
+using Ultima;
 
 // C# to convert a byte array to a string.
 //byte [] dBytes = ...
@@ -30,7 +31,10 @@ namespace drkuo
 {
     class uonetwork
     {
+        
+        private static StringList clioclist = new StringList("ENU");
         public uoplayer player = new uoplayer();
+        public uoclientvars UOClient = new uoclientvars();
         public Hashtable GameObjects = new Hashtable();
         public bool bConnected = false;
         public String myoutput = "";
@@ -64,6 +68,7 @@ namespace drkuo
             Thread.Sleep(500);
             if (mysocket.Connected) { Login(); display("Connected!"); bConnected = true; }
             mysocket.DontFragment = true;
+
             while (mysocket.Connected)
             {
                 if (mysocket.Available > 0)
@@ -76,7 +81,7 @@ namespace drkuo
                     mysocket.BeginReceive(mystate.buffer, 0, mysocket.Available, SocketFlags.None, PacketReceived, mystate);
                 }
             }
-            display("Connection Lost");
+            //display("Connection Lost");
         }
 
         public void PacketReceived(IAsyncResult result)
@@ -93,15 +98,18 @@ namespace drkuo
             {
                 if (bDecompress)
                 {
+                    HuffmanDecompression huff = new HuffmanDecompression();
+           
                     outbuffer = new byte[incomingpackets.Count];
                     huffmanobject myhuf = new huffmanobject();
                     myhuf.buffer = (byte[])incomingpackets.ToArray(typeof(byte));
                     myhuf.src_size = incomingpackets.Count;
                     myhuf.out_size = 0;
+                    //myhuf.output = BinaryNode.Decompress(myhuf.buffer);
                     myhuf = BinaryNode.drkDecompress(myhuf);
-
-                   
                     outbuffer = myhuf.output;
+                    //myhuf.out_size = outbuffer.Length;
+    
                     if (outbuffer.Length < 1) { incomingpackets.Clear(); break; }
                     if (myhuf.buffer.Length > outbuffer.Length)
                     {
@@ -121,6 +129,8 @@ namespace drkuo
 
                     handlePackets(outbuffer);
                 }
+
+
             }
       
 
@@ -261,6 +271,9 @@ namespace drkuo
                     case UOopcodes.SMSG_ServerChat:
                         handleServerChat(packetinfo);
                         break;
+                    case UOopcodes.MSG_SendSpeach:
+                        handleSendSpeach(packetinfo);
+                        break;
                     case UOopcodes.SMSG_UpdateCurrentHealth:
                         handleUpdateCurrentHealth(packetinfo);
                         break;
@@ -273,6 +286,21 @@ namespace drkuo
                     case UOopcodes.SMSG_WornItem:
                         handleWornItem(packetinfo);
                         break;
+                    case UOopcodes.SMSG_Time:
+                        handleTime(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_SEintroducedRevision:
+                        handleSEIntroducedRevision(packetinfo);
+                        break;
+                    case UOopcodes.SMSG_Seasonalinformation:
+                        handleSeasonalInformation(packetinfo);
+                        break;
+                    case UOopcodes.MSG_ClientVersion:
+                        handleClientVersion(packetinfo);
+                        break;
+                    case UOopcodes.MSG_RequestWarMode:
+                        handleRequestWarMode(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
@@ -284,9 +312,104 @@ namespace drkuo
             { }
         }
 
-        private void handleGeneralInformation(byte[] packetinfo)
+        private void handleSendSpeach(byte[] buffer)
+        {       
+		    String chatMsg = "";
+		    int size = (buffer[1] >>8) | buffer[2];
+		    byte[] chat = new byte[size];
+		    for (int i = 0; i < chat.Length; i++)
+			    chat[i] = buffer[i];
+
+		    String name = "";
+		    String msg = "";
+		    for (int i = 14; i < 44; i++)
+			    if (chat[i] != 0x00) name = name + (char)chat[i];
+		    for (int i = 44; i < chat.Length; i++)
+			    if (chat[i] != 0x00) msg = msg + (char)chat[i];
+		    chatMsg = name + ": " + msg;
+		    display(chatMsg);
+        }
+
+        private void handleRequestWarMode(byte[] packetinfo)
+        {
+            if (packetinfo[1] == 0x01)
+            {
+                player.WarMode = true;
+            }
+            else
+            {
+                player.WarMode = false;
+            }
+        }
+
+        private void handleClientVersion(byte[] packetinfo)
+        {
+            sendClient("2.0.3");
+        }
+
+        private void handleSeasonalInformation(byte[] packetinfo)
+        {
+            if (packetinfo.Length != 3) { display("Incorrect seasonalInfo packet len"); return; }
+            int seasonflag = (int)packetinfo[1];
+            switch(seasonflag)
+            {
+                case 0:
+                    display("Its Spring");
+                    break;
+                case 1:
+                    display("Its Summer");
+                    break;
+                case 2:
+                    display("Its Fall");
+                    break;
+                case 3:
+                    display("Its Winter");
+                    break;
+                case 4:
+                    display("Its Desolate");
+                    break;
+            }
+        }
+
+        private void handleTime(byte[] packetinfo)
         {
             throw new NotImplementedException();
+        }
+
+        private void handleSEIntroducedRevision(byte[] packetinfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void handleGeneralInformation(byte[] packetinfo)
+        {
+            int len = ((packetinfo[1] << 8) | packetinfo[2]);
+            if (len != packetinfo.Length)
+            {
+                display("Bad length on G info packet");
+                return;
+            }
+            int subcommand = ((packetinfo[3] << 8) | packetinfo[4]);
+            switch (subcommand)
+            {
+                case 1:// Init fast walk prevention
+
+                    break;
+                case 2://Add key to fast walk stack
+
+                    break;
+                case 4://Close Generic Gump
+
+                    break;
+                case 5://Screen size
+
+                    break;
+                case 8: //Cursor color to get map 
+                    UOClient.Facet = packetinfo[5];
+                    break;
+
+
+            }
         }
 
         private void handleWornItem(byte[] packetinfo)
@@ -296,17 +419,26 @@ namespace drkuo
 
         private void handleUpdateCurrentStamina(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            if (packetinfo.Length != 9) { display("Incorrect UpdateStam packet len"); return; }
+            player.MaxStam = ((packetinfo[5] << 8) | packetinfo[6]);
+            player.Stamina = ((packetinfo[7] << 8) | packetinfo[8]);
+            updatevars();
         }
 
         private void handleUpdateCurrentMana(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            if (packetinfo.Length != 9) { display("Incorrect UpdateMP packet len"); return; }
+            player.MaxMana = ((packetinfo[5] << 8) | packetinfo[6]);
+            player.Mana = ((packetinfo[7] << 8) | packetinfo[8]);
+            updatevars();
         }
 
         private void handleUpdateCurrentHealth(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            if (packetinfo.Length != 9) { display("Incorrect UpdateHP packet len"); return; }
+            player.MaxHits = ((packetinfo[5] <<8) | packetinfo[6]);
+            player.Hits = ((packetinfo[7] <<8) | packetinfo[8]);
+            updatevars();
         }
 
         private void handleServerChat(byte[] packetinfo)
@@ -411,7 +543,14 @@ namespace drkuo
 
         private void handleCliocMessage(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            int cliocmsg = (( packetinfo[14] <<24) | ( packetinfo[15] <<16) | ( packetinfo[16] <<8) | ( packetinfo[17]));
+            byte[] speaker = new byte[30];
+            for (int i = 0; i < speaker.Length; i++)
+            {
+                speaker[i] = packetinfo[i + 18];
+            }
+            string myspeaker = GetString(speaker);// need to remove trailing spaces
+            display(myspeaker + ": " + clioclist.Table[cliocmsg]);
         }
 
         private void handleCharMoveRejection(byte[] packetinfo)
@@ -471,7 +610,17 @@ namespace drkuo
         private void handleKickPlayer()
         {
             display("Player Kicked");
+            Dissconnect();
 
+        }
+        public void Dissconnect()
+        {
+            bConnected = false;
+            if (mysocket.Connected)
+            {
+                mysocket.Disconnect(true);
+            }
+            display("Dissconnected!");
         }
         private void handleSetWeather(byte[] weather)
         {
@@ -576,11 +725,11 @@ namespace drkuo
             {
                 GameObjects.Add(tmpob.serial, tmpob);
             }
-                if (tmpob.serial == player.serial)
+                if (tmpob.serial == player.CharID)
                 {
-                    player.x = tmpob.x;
-                    player.y = tmpob.y;
-                    player.z = tmpob.z;
+                    player.CharPosX = tmpob.x;
+                    player.CharPosY = tmpob.y;
+                    player.CharPosZ = tmpob.z;
                 }
                 display("Update Player ID: " + tmpob.serial + " type: " + tmpob.type + "X: " + tmpob.x + "Y: " + tmpob.y);
 	
@@ -616,30 +765,32 @@ namespace drkuo
         private void handleStatusBarInfo(byte[] status)
         {
             display("Handling Status Bar Info");
-            player.serial = (((status[3] << 24) | (status[4] << 16) | (status[5] << 8) | (status[6])));
+            player.CharID = (((status[3] << 24) | (status[4] << 16) | (status[5] << 8) | (status[6])));
             byte[] myname = new byte[30];
             for (int i = 0; i < myname.Length; i++)
             {
                 myname[i] = status[i + 7];
             }
-            player.name = GetString(myname);// need to remove trailing spaces
-            player.curhp = ((status[37] << 8) | (status[38] & 0xFF));
-            player.maxhp = ((status[39] << 8) | (status[40] & 0xFF));
-            int statusflag = status[41];
-            player.sex = status[42];
-            player.str = ((status[43] << 8) | (status[44] & 0xFF));
-            player.dex = ((status[45] << 8) | (status[46] & 0xFF));
-            player.intel = ((status[47] << 8) | (status[48] & 0xFF));
-            player.curstam = ((status[49] << 8) | (status[50] & 0xFF));
-            player.maxstam = ((status[51] << 8) | (status[52] & 0xFF));
-            player.curmana = ((status[53] << 8) | (status[54] & 0xFF));
-            player.maxmana = ((status[55] << 8) | (status[56] & 0xFF));
-            player.gold = ((status[57] << 8) | (status[58] & 0xFF));
-            int armor = ((status[59] << 8) | (status[60] & 0xFF));
-            player.weight = ((status[61] << 8) | (status[62] & 0xFF));
+            player.CharName = GetString(myname);// need to remove trailing spaces
+            player.Hits = ((status[37] << 8) | (status[38] & 0xFF));
+            player.MaxHits = ((status[39] << 8) | (status[40] & 0xFF));
+            int namehchange = status[41];
+            int statusflag = status[42];
+
+            player.Sex = status[43];
+            player.Str = ((status[44] << 8) | (status[45] & 0xFF));
+            player.Dex = ((status[46] << 8) | (status[47] & 0xFF));
+            player.Int = ((status[48] << 8) | (status[49] & 0xFF));
+            player.Stamina = ((status[50] << 8) | (status[51] & 0xFF));
+            player.MaxStam = ((status[52] << 8) | (status[53] & 0xFF));
+            player.Mana = ((status[54] << 8) | (status[55] & 0xFF));
+            player.MaxMana = ((status[56] << 8) | (status[57] & 0xFF));
+            player.Gold = ((status[58] << 8) | (status[59] & 0xFF));
+            int armor = ((status[60] << 8) | (status[61] & 0xFF));
+            player.Weight = ((status[62] << 8) | (status[63] & 0xFF));
             if (statusflag > 4)
             {
-                player.maxweight = ((status[63] << 8) | (status[64] & 0xFF));
+                player.MaxWeight = ((status[64] << 8) | (status[65] & 0xFF));
             }
             updatevars();
         }
@@ -647,14 +798,14 @@ namespace drkuo
         private void handleDrawGamePlayer(byte[] packetinfo)
         {
             display("Handling Draw Game Player");
-            player.serial = (((packetinfo[1] <<24) | (packetinfo[2] <<16) | (packetinfo[3] <<8) | (packetinfo[4])));
-            player.type = ((packetinfo[5] <<8) | (packetinfo[6]) & 0xFF);
+            player.CharID = (((packetinfo[1] <<24) | (packetinfo[2] <<16) | (packetinfo[3] <<8) | (packetinfo[4])));
+            player.CharType = ((packetinfo[5] <<8) | (packetinfo[6]) & 0xFF);
             // 7 is unknown
             player.hue = ((packetinfo[8] << 8) | (packetinfo[9]) & 0xFF);
             player.flags = packetinfo[10];
-            player.x = ((packetinfo[11] <<8) | (packetinfo[12]) & 0xFF);
-            player.y = ((packetinfo[13] <<8) | (packetinfo[14]) & 0xFF);
-            player.z = (packetinfo[18]);
+            player.CharPosX = ((packetinfo[11] <<8) | (packetinfo[12]) & 0xFF);
+            player.CharPosY = ((packetinfo[13] <<8) | (packetinfo[14]) & 0xFF);
+            player.CharPosZ = (packetinfo[18]);
             updatevars();
         }
 
@@ -664,11 +815,11 @@ namespace drkuo
             byte[] charLoc = new byte[37];
 		for (int i = 0; i < charLoc.Length; i++)
 			charLoc[i] = buffer[i];
-		player.serial = (((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4])));
-		player.type = ((charLoc[9] <<8 | charLoc[10] &0xFF));
-                player.x = (((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
-		player.y = (((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
-		player.z = (((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
+		player.CharID = (((charLoc[1] <<24) | (charLoc[2] <<16) | (charLoc[3] <<8) | (charLoc[4])));
+		player.CharType = ((charLoc[9] <<8 | charLoc[10] &0xFF));
+                player.CharPosX = (((charLoc[11] & 0xFF) <<8) | (charLoc[12] & 0xFF));
+		player.CharPosY = (((charLoc[13] & 0xFF) <<8) | (charLoc[14] & 0xFF));
+		player.CharPosZ = (((charLoc[15] & 0xFF) <<8) | (charLoc[16] & 0xFF));
         updatevars();
         }
 
@@ -729,7 +880,7 @@ namespace drkuo
         }
         public void updatevars()
         {
-            myvars = ("Player ID: " + player.serial + "\r\nPlayer Type: " + player.type + "\r\nPlayer X: " + player.x + " \r\nPlayer Y: " + player.y + "\r\nPlayer Z: " + player.z + "\r\nPlayer Flags: " + player.flags + "\r\nPlayer Name: " + player.name + "\r\nGold: " + player.gold + "\r\nWeight: " + player.weight + "\r\nPlayer Max Weight: " + player.maxweight);
+            myvars = ("Player ID: " + player.CharID + "\r\nPlayer Type: " + player.CharType + "\r\nPlayer X: " + player.CharPosX + " \r\nPlayer Y: " + player.CharPosY + "\r\nPlayer Z: " + player.CharPosZ + "\r\nPlayer Flags: " + player.flags + "\r\nPlayer Name: " + player.CharName + "\r\nGold: " + player.Gold + "\r\nWeight: " + player.Weight + "\r\nPlayer Max Weight: " + player.MaxWeight);
         }
        
 
@@ -788,6 +939,7 @@ namespace drkuo
              {
                  mysocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                  mysocket.Connect(new IPEndPoint(serverip, port));
+                 mysocket.ReceiveBufferSize = 32768;
                  display("Connecting...");
              }
              catch
