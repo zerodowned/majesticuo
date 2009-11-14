@@ -72,23 +72,7 @@ namespace drkuo.Packets.Send
             status[9] = temp[3];
             return status;
         }
-        public static byte[] MoveRequestPacket(int direction, byte sequence, int fastWalkPreventionKey)
-        {
-            byte[] packet = new byte[7];
-            packet[0] = UOopcodes.CMSG_MoveRequest;
-            packet[1] = (byte)direction;
-            packet[2] = sequence;
-            byte[] temp = uonetwork.intToByteArray(fastWalkPreventionKey);
-            try
-            {
-                packet[3] = temp[0];
-                packet[4] = temp[1];
-                packet[5] = temp[2];
-                packet[6] = temp[3];
-            }
-            catch { }
-            return packet;
-        }
+       
         /* public static void walk(String direction, int numOfSteps)
     {
         byte walkPacket[] = new byte[7];
@@ -206,7 +190,20 @@ namespace drkuo.Packets.Send
 		skillPacket[7] = (byte)'0';
         return skillPacket;
 	}
-        
+        public static byte[] Cast(int var1)
+        {
+            // Untested
+            byte[] skillPacket = new byte[9];
+            skillPacket[0] = UOopcodes.CMSG_RequestSkilluse;
+            skillPacket[1] = 0x00; //block size
+            skillPacket[2] = 0x09;
+            skillPacket[3] = 0x56;
+            skillPacket[4] = (byte)var1;//uonetwork.intToByteArray(var1);
+            skillPacket[5] = (byte)'0';//var2; uonetwork.intToByteArray(var2);
+            skillPacket[6] = (byte)' ';
+            skillPacket[7] = (byte)'0';
+            return skillPacket;
+        }   
         public static byte[] resync() {
             byte[] sync = new byte[3];
             sync[0] = (byte)0x22;

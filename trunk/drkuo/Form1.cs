@@ -53,13 +53,7 @@ namespace drkuo
         {
 
             InitializeComponent();
-            ip = txtIP.Text;
-            user = txtUsername.Text;
-            pass = txtPassword.Text;
-            port = Convert.ToInt32(txtPort.Text);
-            uonet = new uonetwork(ip, port, user, pass, Convert.ToInt32(txtCharSlot.Text));
-            mythread = new Thread(new ThreadStart(uonet.main));
-            mythread.IsBackground = true;
+           
             setuptreeview();
         }
 
@@ -74,15 +68,15 @@ namespace drkuo
                     "Client",
                     new GameVariable[]
                     {
-                        new GameVariable { name = "CliCnt", node = null },
-                        new GameVariable { name = "CliLang", node = null },
-                        new GameVariable { name = "CliLogged", node = null },
-                        new GameVariable { name = "CliNr", node = null },
-                        new GameVariable { name = "CliLeft", node = null },
-                        new GameVariable { name = "CliTop", node = null },
-                        new GameVariable { name = "CliVer", node = null },
-                        new GameVariable { name = "CliXRes", node = null },
-                        new GameVariable { name = "CliYRes", node = null }
+                        //new GameVariable { name = "CliCnt", node = null },
+                        //new GameVariable { name = "CliLang", node = null },
+                       // new GameVariable { name = "CliLogged", node = null },
+                        //new GameVariable { name = "CliNr", node = null },
+                        //new GameVariable { name = "CliLeft", node = null },
+                       // new GameVariable { name = "CliTop", node = null },
+                        //new GameVariable { name = "CliVer", node = null },
+                       // new GameVariable { name = "CliXRes", node = null },
+                        //new GameVariable { name = "CliYRes", node = null }
                     }
                 },
                 {
@@ -99,7 +93,7 @@ namespace drkuo
                         new GameVariable { name = "CharName", node = null },
                         new GameVariable { name = "CharStatus", node = null },
                         new GameVariable { name = "CharType", node = null },
-                        new GameVariable { name = "Sex", node = null }
+                        new GameVariable { name = "Sex", node = null },
                     }
                 },
                 {
@@ -226,6 +220,9 @@ namespace drkuo
                         case "CharName":
                             temp = var.name + " = " + uonet.player.CharName;
                             break;
+                        case "CursKind":
+                            temp = var.name + " = " + uonet.player.Facet;
+                            break;
                             //
                         default:
                             temp = var.name + " = nil";
@@ -291,6 +288,13 @@ namespace drkuo
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
+            ip = txtIP.Text;
+            user = txtUsername.Text;
+            pass = txtPassword.Text;
+            port = Convert.ToInt32(txtPort.Text);
+            uonet = new uonetwork(ip, port, user, pass, Convert.ToInt32(txtCharSlot.Text));
+            mythread = new Thread(new ThreadStart(uonet.main));
+            mythread.IsBackground = true;
             mythread.Start();
             timer1.Interval = 100;
             timer1.Start();
