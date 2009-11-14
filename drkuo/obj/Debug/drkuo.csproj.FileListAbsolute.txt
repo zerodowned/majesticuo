@@ -6,3 +6,4 @@ C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\bin\Debug\drkuo
 C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\bin\Debug\drkuo.pdb
 C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Debug\drkuo.exe
 C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\obj\Debug\drkuo.pdb
+C:\Users\James\Documents\Visual Studio 2008\Projects\drkuo\drkuo\bin\Debug\Ultima.dll

@@ -7,11 +7,14 @@ namespace drkuo
 {
     class uoclientvars
     {
-        public int Facet;
+        
 
     }
     class uoplayer
     {
+        public int tempx;
+            public int tempy; // temp movement fix
+            public int seq; // temp
     public int CharID;
     public int CharType;
     public int CharPosX;
@@ -35,6 +38,8 @@ namespace drkuo
     public int hue;
     public int BackpackID;
     public bool WarMode;
+    public int Facet;
+    public int Direction;
 
     }
     class uoobject

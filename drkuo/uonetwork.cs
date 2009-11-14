@@ -31,7 +31,7 @@ namespace drkuo
 {
     class uonetwork
     {
-        
+        public int seq = 0; // walk sequence
         private static StringList clioclist = new StringList("ENU");
         public uoplayer player = new uoplayer();
         public uoclientvars UOClient = new uoclientvars();
@@ -69,16 +69,23 @@ namespace drkuo
             if (mysocket.Connected) { Login(); display("Connected!"); bConnected = true; }
             mysocket.DontFragment = true;
 
+            //NetworkStream stream = new NetworkStream(mysocket);
             while (mysocket.Connected)
             {
+                //if (stream.DataAvailable)
+                //{
+                //    StateObject state = new StateObject();
+                //    state.buffer = new byte[2048];
+               //    stream.BeginRead(state.buffer, 0, state.buffer.Length, PacketReceived,state);
+               // }
                 if (mysocket.Available > 0)
                 {
                     mystate.buffer = new byte[mysocket.Available];
                     mystate.decomp = new byte[mysocket.Available];
                     mystate.avail = mysocket.Available;
                     //display("data avail");
-                    
-                    mysocket.BeginReceive(mystate.buffer, 0, mysocket.Available, SocketFlags.None, PacketReceived, mystate);
+                    // line below used to use mysocket.Available, think this is safer
+                    mysocket.BeginReceive(mystate.buffer, 0, mystate.avail, SocketFlags.None, PacketReceived, mystate);
                 }
             }
             //display("Connection Lost");
@@ -141,7 +148,7 @@ namespace drkuo
             {
                 int cmd = Convert.ToInt32(packetinfo[0]);
                 string cmd2 = Convert.ToString(packetinfo[0]);
-                //display("Received >> " + BitConverter.ToString(packetinfo));
+                display("Received >> " + BitConverter.ToString(packetinfo));
                 switch(cmd)
                 {
                     case UOopcodes.SMSG_GameServerList://0xA8:
@@ -301,6 +308,9 @@ namespace drkuo
                     case UOopcodes.MSG_RequestWarMode:
                         handleRequestWarMode(packetinfo);
                         break;
+                    case UOopcodes.MSG_CharMoveACK:
+                        handleCharMoveACK(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
@@ -311,7 +321,56 @@ namespace drkuo
             catch
             { }
         }
+        public byte[] MoveRequestPacket(Direction direction, int sequence, int fastWalkPreventionKey, Boolean Run)
+        {
+            int dir = (int)direction;
 
+            switch (dir)
+            {
+                case 0x00://North
+                    player.tempx = player.CharPosX;
+                    player.tempy = player.CharPosY - 1;
+                    player.seq = sequence;
+                    break;
+                default:
+                    break;
+            }
+            if (Run) { dir = (dir | 0x80); }// makes us run not walk
+            byte[] packet = new byte[7];
+            packet[0] = UOopcodes.CMSG_MoveRequest;
+            packet[1] = (byte)dir;
+            packet[2] = (byte)sequence;
+            byte[] temp = uonetwork.intToByteArray(fastWalkPreventionKey);
+            try
+            {
+                packet[3] = temp[0];
+                packet[4] = temp[1];
+                packet[5] = temp[2];
+                packet[6] = temp[3];
+            }
+            catch { }
+            return packet;
+        }
+        private void handleCharMoveACK(byte[] packetinfo)
+        {
+            display("seq: " + Convert.ToString(seq));
+            seq = packetinfo[1];
+            if (seq == player.seq) { player.CharPosX = player.tempx; player.CharPosY = player.tempy; }
+            // if the received seq is the same as the sent, update our x/y
+            // allow client to move 3-5 tiles in advance, this means storing 3-5 seq's and their x/y
+            // 190ms is optimal time between steps
+            updatevars();
+        }
+        private void handleCharMoveRejection(byte[] packetinfo)
+        {
+            if (packetinfo.Length != 8) { display("Char move reject packet len wrong"); return; }
+            seq = packetinfo[1];
+            player.CharPosX = (packetinfo[2] << 8) | (packetinfo[3]);
+            player.CharPosY = (packetinfo[4] << 8) | (packetinfo[5]);
+            player.Direction = packetinfo[6];
+            player.CharPosZ = packetinfo[7];
+            updatevars();
+        }
         private void handleSendSpeach(byte[] buffer)
         {       
 		    String chatMsg = "";
@@ -405,7 +464,7 @@ namespace drkuo
 
                     break;
                 case 8: //Cursor color to get map 
-                    UOClient.Facet = packetinfo[5];
+                    player.Facet = packetinfo[5];
                     break;
 
 
@@ -553,10 +612,7 @@ namespace drkuo
             display(myspeaker + ": " + clioclist.Table[cliocmsg]);
         }
 
-        private void handleCharMoveRejection(byte[] packetinfo)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         private void handleCharAnimation(byte[] packetinfo)
         {
@@ -962,7 +1018,7 @@ namespace drkuo
              {
                  loginpack[i + 1] = (byte)myuser[i];
              }
-             for (int i = 0; i <= (myuser.Length - 1); i++)
+             for (int i = 0; i <= (mypass.Length - 1); i++)
              {
                  loginpack[i + 31] = (byte)mypass[i];
              }
