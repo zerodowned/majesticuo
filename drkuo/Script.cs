@@ -19,15 +19,17 @@ namespace drkuo
 
         public void main()
         {
+            uonet.displaywipe();
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
-            //uonet.display(tempob.x + " !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            uonet.display("Script Started!");
             Event Events = new Event(uonet);
             //Events.UseSkill(Skill.AnimalLore);
-            int destx = uonet.player.CharPosX - 5;
-            int desy = uonet.player.CharPosX - 4;
-            Events.Move(3503, 2570, 0, 5);
+            //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
-
+           // Events.UseSkill(Skill.AnimalLore);
+            //Thread.Sleep(500);
+            Events.UseSkill(Skill.Tracking);
+            uonet.display("Script Ended!");
         }
 
 
@@ -45,7 +47,7 @@ namespace drkuo
         public void UseSkill(Skill skill)
         {
             int mskill = Convert.ToInt32(skill);
-            uonet.Send(Packets.Send.Packets.useSkill(mskill, 0));
+            uonet.Send(Packets.Send.Packets.useSkill(mskill));
         }
         public void Cast(Spell spell)
         {
@@ -54,10 +56,8 @@ namespace drkuo
         }
         public void Move(int x, int y, int precision, int timeout)
         {
-            // 
-            myTimer2 = new System.Timers.Timer(2000);
-            myTimer2.AutoReset = false;
-            myTimer2.Elapsed += new System.Timers.ElapsedEventHandler(myTimer2_Elapsed);     
+            uonet.display("Moving From" + uonet.player.CharPosX + "/" + uonet.player.CharPosY + " To " + x + "/" + y);
+            
             myTimer = new System.Timers.Timer(timeout * 1000);
             myTimer.Enabled = true;
             myTimer.AutoReset = false;
@@ -70,16 +70,9 @@ namespace drkuo
                 myx = uonet.player.CharPosX;
                 myy = uonet.player.CharPosY;
                 Direction direction = getDirection(x, y, myx, myy);
-                //uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.North, seq, 5));
                 uonet.Send(uonet.MoveRequestPacket(direction, seq, 0, true));
                 Thread.Sleep(210);// fix this, 190 is min between steps, this static method will break on latency > local server TEST only
                 if (seq != uonet.seq) { uonet.Send(Packets.Send.Packets.resync()); }
-               // myTimer2.Enabled = true;
-                //while ((seq != uonet.seq) & myTimer2.Enabled) { Thread.Sleep(10); }
-                //if (!myTimer2.Enabled) { uonet.Send(Packets.Send.Packets.resync()); }
-                //uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.NorthEast, 0, 0));
-                //while (seq != uonet.seq) { Thread.Sleep(10); }
-                //Thread.Sleep(10);
                     seq = seq + 1;
                     if (seq == 256) { seq = 1; }
             }
@@ -92,11 +85,8 @@ namespace drkuo
         {
             myTimer.Enabled = false;
         }
-        public void myTimer2_Elapsed(object source, ElapsedEventArgs e)
-        {
-            myTimer2.Enabled = false;
-        }
-        public Direction getDirection(int x, int y, int myx, int myy)
+
+        private Direction getDirection(int x, int y, int myx, int myy)
         {
             Direction facing;
             if (x < myx)

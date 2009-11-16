@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections;
 using Ultima;
+using System.Text.RegularExpressions;
 
 // C# to convert a byte array to a string.
 //byte [] dBytes = ...
@@ -332,6 +333,41 @@ namespace drkuo
                     player.tempy = player.CharPosY - 1;
                     player.seq = sequence;
                     break;
+                case 0x01://North East
+                    player.tempx = player.CharPosX + 1;
+                    player.tempy = player.CharPosY - 1;
+                    player.seq = sequence;
+                    break;
+                case 0x02://East
+                    player.tempx = player.CharPosX + 1;
+                    player.tempy = player.CharPosY;
+                    player.seq = sequence;
+                    break;
+                case 0x03://SouthEast
+                    player.tempx = player.CharPosX + 1;
+                    player.tempy = player.CharPosY + 1;
+                    player.seq = sequence;
+                    break;
+                case 0x04://South
+                    player.tempx = player.CharPosX;
+                    player.tempy = player.CharPosY + 1;
+                    player.seq = sequence;
+                    break;
+                case 0x05://SouthWest
+                    player.tempx = player.CharPosX - 1;
+                    player.tempy = player.CharPosY + 1;
+                    player.seq = sequence;
+                    break;
+                case 0x06://West
+                    player.tempx = player.CharPosX - 1;
+                    player.tempy = player.CharPosY;
+                    player.seq = sequence;
+                    break;
+                case 0x07://NorthWest
+                    player.tempx = player.CharPosX - 1;
+                    player.tempy = player.CharPosY - 1;
+                    player.seq = sequence;
+                    break;
                 default:
                     break;
             }
@@ -603,17 +639,30 @@ namespace drkuo
         private void handleCliocMessage(byte[] packetinfo)
         {
             int cliocmsg = (( packetinfo[14] <<24) | ( packetinfo[15] <<16) | ( packetinfo[16] <<8) | ( packetinfo[17]));
-            byte[] speaker = new byte[30];
+            byte[] speaker = new byte[6];
             for (int i = 0; i < speaker.Length; i++)
             {
                 speaker[i] = packetinfo[i + 18];
             }
             string myspeaker = GetString(speaker);// need to remove trailing spaces
-            display(myspeaker + ": " + clioclist.Table[cliocmsg]);
+            display(TrimString(myspeaker) + ": " + clioclist.Table[cliocmsg]);
         }
 
-       
 
+        public string TrimString(string str)
+        {
+            try
+            {
+                string pattern = @"^[ \t]+|[ \t]+$";
+                Regex reg = new Regex(pattern, RegexOptions.IgnoreCase);
+                str = reg.Replace(str, "");
+                return str;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         private void handleCharAnimation(byte[] packetinfo)
         {
             throw new NotImplementedException();
@@ -922,6 +971,7 @@ namespace drkuo
         //    StateObject newstate = new StateObject();
             //mysocket.BeginSend(newstate, 0, Data.Length, Sockets.SocketFlags.None, EndSend, newstate);
             //mysocket.BeginSend(buffer,0,buffer.Length,SocketFlags.None,EndSend,newstate);
+            if (!mysocket.Connected) { display("Dissconnected!!"); Dissconnect(); }
             mysocket.Send(buffer);
             display("Sent >>" + BitConverter.ToString(buffer));
         }
@@ -935,6 +985,10 @@ namespace drkuo
         public void display(String temp)
         {
             myoutput = myoutput + "\r\n" + temp;
+        }
+        public void displaywipe()
+        {
+            myoutput = "";
         }
         public void updatevars()
         {

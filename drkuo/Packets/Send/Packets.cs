@@ -175,19 +175,22 @@ namespace drkuo.Packets.Send
            
 
         }
-        public static byte[] useSkill(int var1, int var2)
+        public static byte[] useSkill(int skill2)
 	{
-                // Should work, skills like anat thats 1 0 need to pass 1 0 for a skill like hiding need to pass 2 1
-
-		byte[] skillPacket = new byte[9];
+        String skill = "";
+        int pcksize = 8;
+            skill = "" + skill2 + " 0"; // converts our number into a string eg "38 0"
+            if(skill2 > 9) {pcksize = 9;} // packet is 9 not 8 if the skill is > 9
+		byte[] skillPacket = new byte[pcksize];
 		skillPacket[0] = UOopcodes.CMSG_RequestSkilluse;
-		skillPacket[1] = 0x00; //block size
-		skillPacket[2] = 0x09;
+		skillPacket[1] = 0x00; //block size	
+        skillPacket[2] = (byte)pcksize;
 		skillPacket[3] = 0x24;
-        skillPacket[4] = (byte)var1;//uonetwork.intToByteArray(var1);
-        skillPacket[5] = (byte)var2; uonetwork.intToByteArray(var2);
-                skillPacket[6] = (byte)' ';
-		skillPacket[7] = (byte)'0';
+        byte[] mskill = uonetwork.GetBytes(skill);
+        for (int i = 0; i < (mskill.Length); i++)
+        {
+            skillPacket[i + 4] = mskill[i];
+        }
         return skillPacket;
 	}
         public static byte[] Cast(int var1)
