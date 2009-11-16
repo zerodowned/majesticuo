@@ -223,12 +223,48 @@ namespace drkuo
                         case "CursKind":
                             temp = var.name + " = " + uonet.player.Facet;
                             break;
-                            //
-                        default:
-                            temp = var.name + " = nil";
+                        case "Str":
+                            temp = var.name + " = " + uonet.player.Str;
                             break;
+                        case "Dex":
+                            temp = var.name + " = " + uonet.player.Dex;
+                            break;
+                        case "Int":
+                            temp = var.name + " = " + uonet.player.Int;
+                            break;
+                        case "MaxStats":
+                            //temp = var.name + " = " + uonet ;
+                            break;
+                         case "Hits":
+                            temp = var.name + " = " + uonet.player.Hits;
+                            break;
+                         case "MaxHits":
+                            temp = var.name + " = " + uonet.player.MaxHits;
+                            break;
+                         case "Stamina":
+                            temp = var.name + " = " + uonet.player.Stamina;
+                            break;
+                         case "MaxStam":
+                            temp = var.name + " = " + uonet.player.MaxStam;
+                            break;
+                         case "Mana":
+                            temp = var.name + " = " + uonet.player.Mana;
+                            break;
+                         case "MaxMana":
+                            temp = var.name + " = " + uonet.player.MaxMana;
+                            break;
+                         case "Weight":
+                            temp = var.name + " = " + uonet.player.Weight;
+                            break;
+                         case "MaxWeight":
+                            temp = var.name + " = " + uonet.player.MaxWeight;
+                            break;
+                         case "Gold":
+                            temp = var.name + " = " + uonet.player.Gold;
+                            break;
+                           
                     }
-                    if (var.node.Text != temp) { var.node.Text = temp; }
+                    if ((var.node.Text != temp)&&(temp != "")) { var.node.Text = temp; }
                     /* GameDLL.SetTop(GH, 0);
                      GameDLL.PushStrVal(GH, "GetVar");
                      GameDLL.PushStrVal(GH, var.name);
