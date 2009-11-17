@@ -7,7 +7,13 @@ namespace drkuo
 {
     class uoclientvars
     {
-        
+        public int TargCurs;
+        public int LTargetID;
+        public int LTargetX;
+        public int LTargetY;
+        // Model must be set to 0 for map/landscape or the type/graphic if its a static tile
+        public int LTargetModel;
+        public int LTargetZ;
 
     }
     class uoplayer

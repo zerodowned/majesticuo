@@ -175,6 +175,14 @@ namespace drkuo.Packets.Send
            
 
         }
+        public static byte[] ClickTarget(int ID, int x, int y, int z, int Type)
+        {
+            // set type to 0 if clicking map.
+            byte[] packet = new byte[19];
+            packet[0] = UOopcodes.MSG_TargetCursorCommands;
+            p
+        }
+
         public static byte[] useSkill(int skill2)
 	{
         String skill = "";
@@ -193,18 +201,22 @@ namespace drkuo.Packets.Send
         }
         return skillPacket;
 	}
-        public static byte[] Cast(int var1)
+        public static byte[] Cast(int skill2)
         {
-            // Untested
-            byte[] skillPacket = new byte[9];
+            String skill = "";
+            int pcksize = 8;
+            skill = Convert.ToString(skill2); // converts our number into a string eg "38 0"
+            if (skill2 > 9) { pcksize = 9; } // packet is 9 not 8 if the skill is > 9
+            byte[] skillPacket = new byte[pcksize];
             skillPacket[0] = UOopcodes.CMSG_RequestSkilluse;
-            skillPacket[1] = 0x00; //block size
-            skillPacket[2] = 0x09;
+            skillPacket[1] = 0x00; //block size	
+            skillPacket[2] = (byte)pcksize;
             skillPacket[3] = 0x56;
-            skillPacket[4] = (byte)var1;//uonetwork.intToByteArray(var1);
-            skillPacket[5] = (byte)'0';//var2; uonetwork.intToByteArray(var2);
-            skillPacket[6] = (byte)' ';
-            skillPacket[7] = (byte)'0';
+            byte[] mskill = uonetwork.GetBytes(skill);
+            for (int i = 0; i < (mskill.Length); i++)
+            {
+                skillPacket[i + 4] = mskill[i];
+            }
             return skillPacket;
         }   
         public static byte[] resync() {
