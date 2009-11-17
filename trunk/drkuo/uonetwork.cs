@@ -32,6 +32,7 @@ namespace drkuo
 {
     class uonetwork
     {
+        private Boolean bDebug = false;
         public int seq = 0; // walk sequence
         private static StringList clioclist = new StringList("ENU");
         public uoplayer player = new uoplayer();
@@ -121,7 +122,7 @@ namespace drkuo
                     if (outbuffer.Length < 1) { incomingpackets.Clear(); break; }
                     if (myhuf.buffer.Length > outbuffer.Length)
                     {
-                        display("consuming: " + myhuf.out_size + " bytes");
+                        if (bDebug) { display("consuming: " + myhuf.out_size + " bytes"); }
                         for (int x = 0; x < (myhuf.out_size + 1); x++) { incomingpackets.RemoveAt(0); } // removes it from queue
                     }else {
                         incomingpackets.Clear();
@@ -149,7 +150,7 @@ namespace drkuo
             {
                 int cmd = Convert.ToInt32(packetinfo[0]);
                 string cmd2 = Convert.ToString(packetinfo[0]);
-                display("Received >> " + BitConverter.ToString(packetinfo));
+                if (bDebug) { display("Received >> " + BitConverter.ToString(packetinfo)); }
                 switch(cmd)
                 {
                     case UOopcodes.SMSG_GameServerList://0xA8:
@@ -312,6 +313,9 @@ namespace drkuo
                     case UOopcodes.MSG_CharMoveACK:
                         handleCharMoveACK(packetinfo);
                         break;
+                    case UOopcodes.MSG_TargetCursorCommands:
+                        handleTargetCursorCommands(packetinfo);
+                        break;
                     default:
                         display("UnknownPacket: " + BitConverter.ToString(packetinfo));
                         break;
@@ -321,6 +325,11 @@ namespace drkuo
             
             catch
             { }
+        }
+
+        private void handleTargetCursorCommands(byte[] packetinfo)
+        {
+            UOClient.TargCurs = 1;
         }
         public byte[] MoveRequestPacket(Direction direction, int sequence, int fastWalkPreventionKey, Boolean Run)
         {
@@ -973,7 +982,7 @@ namespace drkuo
             //mysocket.BeginSend(buffer,0,buffer.Length,SocketFlags.None,EndSend,newstate);
             if (!mysocket.Connected) { display("Dissconnected!!"); Dissconnect(); }
             mysocket.Send(buffer);
-            display("Sent >>" + BitConverter.ToString(buffer));
+            if(bDebug) { display("Sent >>" + BitConverter.ToString(buffer)); }
         }
         public void EndSend(IAsyncResult AR)
         {

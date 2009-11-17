@@ -23,6 +23,7 @@ namespace drkuo
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
+            Events.Cast(Spell.Agility);
             //Events.UseSkill(Skill.AnimalLore);
             //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
