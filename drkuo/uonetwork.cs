@@ -329,7 +329,50 @@ namespace drkuo
 
         private void handleTargetCursorCommands(byte[] packetinfo)
         {
+            UOClient.CursorID = ((packetinfo[2] << 24) | (packetinfo[3] << 16) | (packetinfo[4] << 8) | (packetinfo[5]));
+            UOClient.CursorTarget = packetinfo[1];
             UOClient.TargCurs = 1;
+        }
+        public byte[] ClickTargetPacket(int ID, int x, int y, int z, int Type, CursorTarget target)
+        {
+            // set type to 0 if clicking map.
+
+            //
+            byte[] packet = new byte[19];
+            packet[0] = UOopcodes.MSG_TargetCursorCommands;
+            packet[1] = (byte)target;
+            byte[] temp = intToByteArray(UOClient.CursorID);
+            packet[2] = temp[0];
+            packet[3] = temp[1];
+            packet[4] = temp[2];
+            packet[5] = temp[3];
+            packet[6] = 0x00; // maybe this should be setable?
+            temp = new byte[4];
+            temp = intToByteArray(ID);
+            packet[7] = temp[0];
+            packet[8] = temp[1];
+            packet[9] = temp[2];
+            packet[10] = temp[3];
+            temp = new byte[2];
+            temp = intToByteArray(x);
+            packet[11] = temp[0];
+            packet[12] = temp[1];
+            temp = new byte[2];
+            temp = intToByteArray(y);
+            packet[13] = temp[0];
+            packet[14] = temp[1];
+            packet[15] = 0x00;
+            packet[16] = (byte)z;
+
+            temp = new byte[2];
+            if (target == 0)// maybe wrong?
+            {
+                temp = intToByteArray(Type);
+                packet[17] = temp[0];
+                packet[18] = temp[1];
+            }
+            return packet;
+            
         }
         public byte[] MoveRequestPacket(Direction direction, int sequence, int fastWalkPreventionKey, Boolean Run)
         {
