@@ -84,6 +84,11 @@ namespace drkuo
                 SummonFireElemental = 63,
                 SummonWaterElemental = 64
     }
+            public enum CursorTarget
+            {
+                SelectObject = 0,
+                SelectXYZ = 1
+            }
     public enum Skill
     {
         Anatomy = 1,

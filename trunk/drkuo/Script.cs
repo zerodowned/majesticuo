@@ -23,13 +23,13 @@ namespace drkuo
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
-            Events.Cast(Spell.Agility);
-            //Events.UseSkill(Skill.AnimalLore);
+            //Events.Cast(Spell.Agility);
+            Events.UseSkill(Skill.AnimalLore);
             //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
            // Events.UseSkill(Skill.AnimalLore);
             //Thread.Sleep(500);
-            Events.UseSkill(Skill.Tracking);
+            //Events.UseSkill(Skill.Tracking);
             uonet.display("Script Ended!");
         }
 
@@ -54,6 +54,12 @@ namespace drkuo
         {
             int mcast = Convert.ToInt32(spell);
             uonet.Send(Packets.Send.Packets.Cast(mcast));
+        }
+        public void Target(int X, int Y, int Z, int ID, int Model)
+        {
+            uonet.Send(uonet.ClickTargetPacket(ID, X, Y, Z, Model, CursorTarget.SelectObject));
+
+            uonet.UOClient.TargCurs = 0;
         }
         public void Move(int x, int y, int precision, int timeout)
         {

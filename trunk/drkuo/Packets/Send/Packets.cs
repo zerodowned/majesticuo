@@ -175,13 +175,7 @@ namespace drkuo.Packets.Send
            
 
         }
-        public static byte[] ClickTarget(int ID, int x, int y, int z, int Type)
-        {
-            // set type to 0 if clicking map.
-            byte[] packet = new byte[19];
-            packet[0] = UOopcodes.MSG_TargetCursorCommands;
-            p
-        }
+        
 
         public static byte[] useSkill(int skill2)
 	{

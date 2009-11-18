@@ -14,6 +14,9 @@ namespace drkuo
         // Model must be set to 0 for map/landscape or the type/graphic if its a static tile
         public int LTargetModel;
         public int LTargetZ;
+        public int CursorID; // internal value, it links sent/received target msgs
+        public int CursorTarget; // 0/1 for object/ground we auto send what the server wants to keep shit simple
+
 
     }
     class uoplayer
