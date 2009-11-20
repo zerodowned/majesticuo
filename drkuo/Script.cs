@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Timers;
-
+using System.Collections;
+using System.Collections.Generic;
 
 namespace drkuo
 {
@@ -23,9 +24,17 @@ namespace drkuo
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
+            uoobject result = Events.Finditem(400);
             //Events.Cast(Spell.Agility);
-            Events.UseSkill(Skill.AnimalLore);
-            //Events.Move(3503, 2580, 0, 5);
+           // while (true)
+           // {
+
+                Events.UseSkill(Skill.AnimalLore);
+                while (uonet.UOClient.TargCurs == 0) { Thread.Sleep(10); }
+                
+               // Events.Target(
+           // }
+                //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
            // Events.UseSkill(Skill.AnimalLore);
             //Thread.Sleep(500);
@@ -44,6 +53,21 @@ namespace drkuo
         public Event(uonetwork muonet)
         {
             uonet = muonet;
+        }
+        public uoobject Finditem(int Type)
+        {
+            uoobject myobj = new uoobject();
+            foreach (DictionaryEntry Item in uonet.GameObjects)
+            {
+                uoobject mytemp = (uoobject)Item.Value;
+                if (mytemp.type == Type)
+                {
+                    myobj = mytemp;
+                    break;
+                }
+            }
+            
+            return myobj;
         }
         public void UseSkill(Skill skill)
         {
