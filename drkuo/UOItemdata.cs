@@ -16,7 +16,8 @@ namespace drkuo
         public int LTargetZ;
         public int CursorID; // internal value, it links sent/received target msgs
         public int CursorTarget; // 0/1 for object/ground we auto send what the server wants to keep shit simple
-
+        public int EnemyID;
+        public Boolean Combat;
 
     }
     class uoplayer

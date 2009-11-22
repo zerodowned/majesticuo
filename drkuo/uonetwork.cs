@@ -32,6 +32,8 @@ namespace drkuo
 {
     class uonetwork
     {
+        public ArrayList Journal = new ArrayList();
+        
         private Boolean bDebug = false;
         public int seq = 0; // walk sequence
         private static StringList clioclist = new StringList("ENU");
@@ -70,7 +72,7 @@ namespace drkuo
             Thread.Sleep(500);
             if (mysocket.Connected) { Login(); display("Connected!"); bConnected = true; }
             mysocket.DontFragment = true;
-
+            
             //NetworkStream stream = new NetworkStream(mysocket);
             while (mysocket.Connected)
             {
@@ -474,6 +476,7 @@ namespace drkuo
 		    for (int i = 44; i < chat.Length; i++)
 			    if (chat[i] != 0x00) msg = msg + (char)chat[i];
 		    chatMsg = name + ": " + msg;
+            Journal.Add(chatMsg);
 		    display(chatMsg);
         }
 
@@ -595,7 +598,18 @@ namespace drkuo
 
         private void handleSendGumpMenuDialog(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            int id = ((packetinfo[3] << 24) | (packetinfo[4] << 16) | (packetinfo[5] << 8) | (packetinfo[6]));
+            int gumpid = ((packetinfo[7] << 24) | (packetinfo[8] << 16) | (packetinfo[9] << 8) | (packetinfo[10]));
+            int x = ((packetinfo[11] << 24) | (packetinfo[12] << 16) | (packetinfo[13] << 8) | (packetinfo[14]));
+            int y = ((packetinfo[15] << 24) | (packetinfo[16] << 16) | (packetinfo[17] << 8) | (packetinfo[18]));
+            int cmdlen = ((packetinfo[19] << 8) | (packetinfo[20]));
+            int txtlines = ((packetinfo[21+cmdlen] << 8) | (packetinfo[22+cmdlen]));
+            int textlen = ((packetinfo[23+cmdlen] << 8) | (packetinfo[24+cmdlen]));
+            byte[] textt = new byte[textlen];
+            for(int i = 0;i==textlen;i++) {
+                textt[i] = packetinfo[25+cmdlen];
+            }
+            String text = GetString(textt);
         }
 
         private void handleSellList(byte[] packetinfo)
@@ -727,7 +741,9 @@ namespace drkuo
 
         private void handleAttackOK(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            UOClient.Combat = true;
+            UOClient.EnemyID = ((packetinfo[1] << 24) | (packetinfo[2] << 16) | (packetinfo[3] << 8) | (packetinfo[4]));
+
         }
 
         private void handleAllowRefuseAttack(byte[] packetinfo)

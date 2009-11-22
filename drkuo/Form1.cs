@@ -372,6 +372,7 @@ namespace drkuo
                     pingpacket[0] = 0x73;
                     pingpacket[1] = 0x00;
                     uonet.Send(pingpacket);
+            
         }
 
         private void button2_Click(object sender, EventArgs e)

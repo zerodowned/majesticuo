@@ -20,26 +20,34 @@ namespace drkuo
 
         public void main()
         {
-            uonet.displaywipe();
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
+            
+            //Events.Cast(Spell.Agility);
+            uonet.displaywipe();
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
-            uoobject result = Events.Finditem(400);
-            //Events.Cast(Spell.Agility);
-           // while (true)
-           // {
+            int AnimalType = 2200;
+            while (true)
+            {
 
                 Events.UseSkill(Skill.AnimalLore);
                 while (uonet.UOClient.TargCurs == 0) { Thread.Sleep(10); }
-                
-               // Events.Target(
-           // }
+                uoobject fi = Events.Finditem(AnimalType);
+                if (fi.type == AnimalType)
+                {
+                    Events.Target(fi.x, fi.y, fi.z, fi.serial, fi.type);
+                    Thread.Sleep(2000);
+                }
+                Thread.Sleep(10);
+            
+            }
+            uonet.display("Script Ended!");
                 //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
            // Events.UseSkill(Skill.AnimalLore);
             //Thread.Sleep(500);
             //Events.UseSkill(Skill.Tracking);
-            uonet.display("Script Ended!");
+            
         }
 
 
@@ -53,6 +61,11 @@ namespace drkuo
         public Event(uonetwork muonet)
         {
             uonet = muonet;
+        }
+
+        public void ClearJournal()
+        {
+            uonet.Journal.Clear();
         }
         public uoobject Finditem(int Type)
         {
@@ -78,6 +91,10 @@ namespace drkuo
         {
             int mcast = Convert.ToInt32(spell);
             uonet.Send(Packets.Send.Packets.Cast(mcast));
+        }
+        public void UseObject(int ID)
+        {
+            uonet.Send(Packets.Send.Packets.DoubleClick(ID));
         }
         public void Target(int X, int Y, int Z, int ID, int Model)
         {
