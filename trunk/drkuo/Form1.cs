@@ -345,6 +345,7 @@ namespace drkuo
             {
                 uonet.Dissconnect();
                 mythread.Abort();
+               
             }
             this.Close();
         }
@@ -379,6 +380,7 @@ namespace drkuo
         {
             uonet.Dissconnect();
             mythread.Abort();
+            
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -398,6 +400,11 @@ namespace drkuo
             mytile = tm.GetLandTile(273, 1216);
             //txtOutput.Text = txtOutput.Text + StringList.Table[1076267];
             //txtOutput.Text = txtOutput.Text + 
+        }
+
+        private void btn_clearlog_Click(object sender, EventArgs e)
+        {
+            uonet.displaywipe();
         }
 
          

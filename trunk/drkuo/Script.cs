@@ -12,22 +12,35 @@ namespace drkuo
     class Script
     {
         uonetwork uonet;
+        Boolean Active;
         
         public Script(uonetwork muonet)
         {
+           
             uonet = muonet;
         }
 
         public void main()
         {
+            Active = false;
             //uoobject tempob = (uoobject)uonet.GameObjects[3];
             
             //Events.Cast(Spell.Agility);
             uonet.displaywipe();
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
+
+            uoobject myobj = new uoobject();
+            foreach (DictionaryEntry Item in uonet.GameObjects)
+            {
+                uoobject mytemp = (uoobject)Item.Value;
+                uonet.display("ID: " + mytemp.serial);
+            }
+
+
+
             int AnimalType = 2200;
-            while (true)
+            while (Active)
             {
 
                 Events.UseSkill(Skill.AnimalLore);
@@ -102,6 +115,7 @@ namespace drkuo
 
             uonet.UOClient.TargCurs = 0;
         }
+        
         public void Move(int x, int y, int precision, int timeout)
         {
             uonet.display("Moving From" + uonet.player.CharPosX + "/" + uonet.player.CharPosY + " To " + x + "/" + y);

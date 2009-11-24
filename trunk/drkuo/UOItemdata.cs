@@ -19,6 +19,19 @@ namespace drkuo
         public int EnemyID;
         public Boolean Combat;
 
+        
+
+    }
+
+    class gump
+    {
+        public int ID;
+        public int GumpID;
+        public int X;
+        public int Y;
+        public int Z;
+        public String Text;
+        public String Commands;
     }
     class uoplayer
     {
