@@ -40,6 +40,8 @@ namespace drkuo
         public uoplayer player = new uoplayer();
         public uoclientvars UOClient = new uoclientvars();
         public Hashtable GameObjects = new Hashtable();
+        public Hashtable GumpList = new Hashtable();
+
         public bool bConnected = false;
         public String myoutput = "";
         public string myvars = "";
@@ -76,6 +78,7 @@ namespace drkuo
             //NetworkStream stream = new NetworkStream(mysocket);
             while (mysocket.Connected)
             {
+                Thread.Sleep(1);
                 //if (stream.DataAvailable)
                 //{
                 //    StateObject state = new StateObject();
@@ -84,9 +87,10 @@ namespace drkuo
                // }
                 if (mysocket.Available > 0)
                 {
-                    mystate.buffer = new byte[mysocket.Available];
-                    mystate.decomp = new byte[mysocket.Available];
-                    mystate.avail = mysocket.Available;
+                    int mytempavail = mysocket.Available;
+                    mystate.buffer = new byte[mytempavail];
+                    mystate.decomp = new byte[mytempavail];
+                    mystate.avail = mytempavail;
                     //display("data avail");
                     // line below used to use mysocket.Available, think this is safer
                     mysocket.BeginReceive(mystate.buffer, 0, mystate.avail, SocketFlags.None, PacketReceived, mystate);
@@ -248,9 +252,6 @@ namespace drkuo
                         break;
                     case UOopcodes.SMSG_MobAttribute:
                         handleMobAttribute(packetinfo);
-                        break;
-                    case UOopcodes.SMSG_MovePlayer:
-                        handleMovePlayer(packetinfo);
                         break;
                     case UOopcodes.SMSG_OpenBuyWindow:
                         handleOpenBuyWindow(packetinfo);
@@ -523,12 +524,12 @@ namespace drkuo
 
         private void handleTime(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleSEIntroducedRevision(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleGeneralInformation(byte[] packetinfo)
@@ -564,7 +565,7 @@ namespace drkuo
 
         private void handleWornItem(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleUpdateCurrentStamina(byte[] packetinfo)
@@ -593,113 +594,117 @@ namespace drkuo
 
         private void handleServerChat(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleSendGumpMenuDialog(byte[] packetinfo)
         {
-            int id = ((packetinfo[3] << 24) | (packetinfo[4] << 16) | (packetinfo[5] << 8) | (packetinfo[6]));
-            int gumpid = ((packetinfo[7] << 24) | (packetinfo[8] << 16) | (packetinfo[9] << 8) | (packetinfo[10]));
-            int x = ((packetinfo[11] << 24) | (packetinfo[12] << 16) | (packetinfo[13] << 8) | (packetinfo[14]));
-            int y = ((packetinfo[15] << 24) | (packetinfo[16] << 16) | (packetinfo[17] << 8) | (packetinfo[18]));
+            gump mygump = new gump();
+
+            mygump.ID = ((packetinfo[3] << 24) | (packetinfo[4] << 16) | (packetinfo[5] << 8) | (packetinfo[6]));
+            mygump.GumpID = ((packetinfo[7] << 24) | (packetinfo[8] << 16) | (packetinfo[9] << 8) | (packetinfo[10]));
+            mygump.X = ((packetinfo[11] << 24) | (packetinfo[12] << 16) | (packetinfo[13] << 8) | (packetinfo[14]));
+            mygump.Y = ((packetinfo[15] << 24) | (packetinfo[16] << 16) | (packetinfo[17] << 8) | (packetinfo[18]));
             int cmdlen = ((packetinfo[19] << 8) | (packetinfo[20]));
+            mygump.Commands = "";// Add this
             int txtlines = ((packetinfo[21+cmdlen] << 8) | (packetinfo[22+cmdlen]));
             int textlen = ((packetinfo[23+cmdlen] << 8) | (packetinfo[24+cmdlen]));
             byte[] textt = new byte[textlen];
             for(int i = 0;i==textlen;i++) {
                 textt[i] = packetinfo[25+cmdlen];
             }
-            String text = GetString(textt);
+            mygump.Text = GetString(textt);
+            GumpList.Add(mygump.GumpID,mygump);
         }
 
         private void handleSellList(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleRejectMoveItemRequest(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handlePlaySoundEffect(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handlePersonalLightLevel(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOverallLightLevel(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOpenPaperDoll(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOpenDialogBox(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOpenBuyWindow(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleMovePlayer(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleMobAttribute(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleIdleWarning(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleGumpTextEntryDialog(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleGraphicalEffect(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleFightOccuring(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleDropItemApproved(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleDrawContainer(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleDraggingOfItem(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleDamage(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleCliocMessage(byte[] packetinfo)
@@ -731,12 +736,12 @@ namespace drkuo
         }
         private void handleCharAnimation(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleBlood(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleAttackOK(byte[] packetinfo)
@@ -748,17 +753,17 @@ namespace drkuo
 
         private void handleAllowRefuseAttack(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleAddMultipleItemsInContainer(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleAddItemToContainer(byte[] packetinfo)
         {
-            throw new NotImplementedException();
+            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
          private void handleDeleteObject(byte[] myobj) {
             if (myobj.Length != 5)

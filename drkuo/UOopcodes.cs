@@ -53,7 +53,7 @@ namespace drkuo
         public const int SMSG_OpenBuyWindow = 0x74;
         public const int SMSG_OpenDialogBox = 0x7C;
         public const int SMSG_OpenPaperdoll = 0x88;
-        public const int SMSG_MovePlayer = 0x97;
+        public const int CMSG_MovePlayer = 0x97;
         public const int SMSG_SellList = 0x9E;
         public const int SMSG_UpdateCurrentHealth = 0xA1;
         public const int SMSG_UpdateCurrentMana = 0xA2;
