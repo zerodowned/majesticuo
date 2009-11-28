@@ -29,6 +29,22 @@ namespace drkuo
             uonet.displaywipe();
             uonet.display("Script Started!");
             Event Events = new Event(uonet);
+            int cnt = 0;
+            while (cnt < 10)
+            {
+                Events.UseObject(1076771726);
+                while (uonet.UOClient.TargCurs == 0) { Thread.Sleep(10); }
+                Events.TargetGround(2563, 489, 0, 0, 1339);
+                for (int x = 0; x < 40; x++)
+                {
+                    Thread.Sleep(100);
+                    String temp = (String)uonet.Journal[0];
+                    if (temp.Contains("loosen")) { uonet.display("FoundLoosen"); break; }
+                }
+                //Thread.Sleep(3000);
+                uonet.Journal.con
+            }
+            uonet.display(Events.IntToEUO(uonet.player.CharID));
 
             uoobject myobj = new uoobject();
             foreach (DictionaryEntry Item in uonet.GameObjects)
@@ -37,23 +53,7 @@ namespace drkuo
                 uonet.display("ID: " + mytemp.serial);
             }
 
-
-
-            int AnimalType = 2200;
-            while (Active)
-            {
-
-                Events.UseSkill(Skill.AnimalLore);
-                while (uonet.UOClient.TargCurs == 0) { Thread.Sleep(10); }
-                uoobject fi = Events.Finditem(AnimalType);
-                if (fi.type == AnimalType)
-                {
-                    Events.Target(fi.x, fi.y, fi.z, fi.serial, fi.type);
-                    Thread.Sleep(2000);
-                }
-                Thread.Sleep(10);
             
-            }
             uonet.display("Script Ended!");
                 //Events.Move(3503, 2580, 0, 5);
            // uonet.Send(Packets.Send.Packets.MoveRequestPacket(Direction.West,0,0));
@@ -75,7 +75,35 @@ namespace drkuo
         {
             uonet = muonet;
         }
+        public uint EUOToInt(String val)
+        //Code by BtbN
+        {
+            val = val.ToUpper(); // Important!
 
+            uint num = 0;
+
+            for (int p = val.Length - 1; p >= 0; p--)
+                num = num * 26 + (((uint)val[p]) - 65);
+
+            num = (num - 7) ^ 0x45;
+
+            return num;
+        }
+        public String IntToEUO(int num)
+        //Code by BtbN
+        {
+            num = (num ^ 0x45) + 7;
+
+            String res = "";
+
+            do
+            {
+                res += (Char)(65 + (num % 26));
+                num /= 26;
+            } while (num >= 1);
+
+            return res;
+        }
         public void ClearJournal()
         {
             uonet.Journal.Clear();
@@ -115,7 +143,13 @@ namespace drkuo
 
             uonet.UOClient.TargCurs = 0;
         }
-        
+        public void TargetGround(int X, int Y, int Z, int ID, int GroundTileType)
+        {
+            //ID should be 00
+            uonet.Send(uonet.ClickTargetPacket(ID, X, Y, Z, GroundTileType, CursorTarget.SelectXYZ));
+
+            uonet.UOClient.TargCurs = 0;
+        }
         public void Move(int x, int y, int precision, int timeout)
         {
             uonet.display("Moving From" + uonet.player.CharPosX + "/" + uonet.player.CharPosY + " To " + x + "/" + y);

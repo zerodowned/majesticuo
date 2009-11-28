@@ -84,7 +84,7 @@
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(100, 20);
             this.txtUsername.TabIndex = 2;
-            this.txtUsername.Text = "admin";
+            this.txtUsername.Text = "infotech1";
             // 
             // txtPassword
             // 
@@ -92,7 +92,7 @@
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(100, 20);
             this.txtPassword.TabIndex = 3;
-            this.txtPassword.Text = "admin";
+            this.txtPassword.Text = "junk2";
             // 
             // txtIP
             // 
@@ -100,7 +100,7 @@
             this.txtIP.Name = "txtIP";
             this.txtIP.Size = new System.Drawing.Size(100, 20);
             this.txtIP.TabIndex = 4;
-            this.txtIP.Text = "127.0.0.1";
+            this.txtIP.Text = "174.133.94.218";
             // 
             // txtPort
             // 
@@ -108,7 +108,7 @@
             this.txtPort.Name = "txtPort";
             this.txtPort.Size = new System.Drawing.Size(100, 20);
             this.txtPort.TabIndex = 5;
-            this.txtPort.Text = "2593";
+            this.txtPort.Text = "2594";
             // 
             // label1
             // 

@@ -385,6 +385,8 @@ namespace drkuo
 
         private void button3_Click(object sender, EventArgs e)
         {
+
+
             Ultima.Tile mytile = new Ultima.Tile();
             Ultima.TileMatrix tm = new TileMatrix(0, 0, 6144, 4096);
             HuedTile[] htile = tm.GetStaticTiles(777, 1477);
