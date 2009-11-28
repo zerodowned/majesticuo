@@ -33,7 +33,6 @@ namespace drkuo
     class uonetwork
     {
         public ArrayList Journal = new ArrayList();
-        
         private Boolean bDebug = false;
         public int seq = 0; // walk sequence
         private static StringList clioclist = new StringList("ENU");
@@ -338,9 +337,6 @@ namespace drkuo
         }
         public byte[] ClickTargetPacket(int ID, int x, int y, int z, int Type, CursorTarget target)
         {
-            // set type to 0 if clicking map.
-
-            //
             byte[] packet = new byte[19];
             packet[0] = UOopcodes.MSG_TargetCursorCommands;
             packet[1] = (byte)target;
@@ -356,24 +352,15 @@ namespace drkuo
             packet[8] = temp[1];
             packet[9] = temp[2];
             packet[10] = temp[3];
-            temp = new byte[2];
-            temp = intToByteArray(x);
-            packet[11] = temp[0];
-            packet[12] = temp[1];
-            temp = new byte[2];
-            temp = intToByteArray(y);
-            packet[13] = temp[0];
-            packet[14] = temp[1];
+            packet[11] = (byte)(x >> 8);
+            packet[12] = (byte)x;
+            packet[13] = (byte)(y >> 8);
+            packet[14] = (byte)y;
             packet[15] = 0x00;
             packet[16] = (byte)z;
+            packet[17] = (byte)(Type >> 8);
+            packet[18] = (byte)Type;
 
-            temp = new byte[2];
-            if (target == 0)// maybe wrong?
-            {
-                temp = intToByteArray(Type);
-                packet[17] = temp[0];
-                packet[18] = temp[1];
-            }
             return packet;
             
         }
@@ -477,7 +464,7 @@ namespace drkuo
 		    for (int i = 44; i < chat.Length; i++)
 			    if (chat[i] != 0x00) msg = msg + (char)chat[i];
 		    chatMsg = name + ": " + msg;
-            Journal.Add(chatMsg);
+            Journal.Insert(0,chatMsg);
 		    display(chatMsg);
         }
 
@@ -629,17 +616,17 @@ namespace drkuo
 
         private void handlePlaySoundEffect(byte[] packetinfo)
         {
-            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
+            //display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handlePersonalLightLevel(byte[] packetinfo)
         {
-            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
+           // display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOverallLightLevel(byte[] packetinfo)
         {
-            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
+            //display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleOpenPaperDoll(byte[] packetinfo)
@@ -716,7 +703,9 @@ namespace drkuo
                 speaker[i] = packetinfo[i + 18];
             }
             string myspeaker = GetString(speaker);// need to remove trailing spaces
-            display(TrimString(myspeaker) + ": " + clioclist.Table[cliocmsg]);
+            String msg = TrimString(myspeaker) + ": " + clioclist.Table[cliocmsg];
+            Journal.Insert(0, msg);
+            display(msg);
         }
 
 
@@ -736,7 +725,7 @@ namespace drkuo
         }
         private void handleCharAnimation(byte[] packetinfo)
         {
-            display("UnknownPacket: " + BitConverter.ToString(packetinfo));
+            //display("UnknownPacket: " + BitConverter.ToString(packetinfo));
         }
 
         private void handleBlood(byte[] packetinfo)
@@ -1078,7 +1067,6 @@ namespace drkuo
                 (byte)value};
             
         }
-
         
          private void handleConnectToGameServer(byte[] buffer)
          {
