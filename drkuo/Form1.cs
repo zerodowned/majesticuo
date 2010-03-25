@@ -18,6 +18,12 @@
 *                                                                          *
 \**************************************************************************/
 
+//Changes
+// Added stop script, fixed most crashes due to no connection etc.
+// Added a send text box, add commands, add support for enter to send not just button
+
+//Todo
+// Fix crash on no uo install, just disable features?
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -48,13 +54,22 @@ namespace drkuo
         private int port;
         private String user;
         private String pass;
-        
+        private Thread ScriptThread;
+
         public drkGui()
         {
 
             InitializeComponent();
            
             setuptreeview();
+            ip = txtIP.Text;
+            user = txtUsername.Text;
+            pass = txtPassword.Text;
+            port = Convert.ToInt32(txtPort.Text);
+            uonet = new uonetwork(ip, port, user, pass, Convert.ToInt32(txtCharSlot.Text));
+                ScriptThread = new Thread(new ThreadStart(new Script(uonet).main));
+                ScriptThread.IsBackground = true;
+
         }
 
 
@@ -354,11 +369,7 @@ namespace drkuo
         {
             if (uonet.bConnected)
             {
-                myscript = new Script(uonet);
-                Thread mythread2;
-                mythread2 = new Thread(new ThreadStart(myscript.main));
-                mythread2.IsBackground = true;
-                mythread2.Start();
+                ScriptThread.Start();
             }
             else
             {
@@ -372,6 +383,7 @@ namespace drkuo
             byte[] pingpacket = new byte[2];
                     pingpacket[0] = 0x73;
                     pingpacket[1] = 0x00;
+                    if (!uonet.bConnected) { Pingtimer.Stop(); }
                     uonet.Send(pingpacket);
             
         }
@@ -388,12 +400,17 @@ namespace drkuo
 
 
             Ultima.Tile mytile = new Ultima.Tile();
-            Ultima.TileMatrix tm = new TileMatrix(0, 0, 6144, 4096);
-            HuedTile[] htile = tm.GetStaticTiles(777, 1477);
-            Ultima.Tile mytile2 = new Ultima.Tile();
-            mytile = tm.GetLandTile(577,1777);
-            int mytileid = (htile[0].ID & 0xFFF); // need a check, exception if ID is 0
+            
+            //mytile = tm.GetLandTile(2563, 489);
+            int mytileid = (mytile.ID & 0x3FFF);
+           // uonet.display(""+mytileid);
 
+            
+            Ultima.Tile mytile2 = new Ultima.Tile();
+            Ultima.TileMatrix tm = new TileMatrix(0, 0, 6144, 4096);
+            HuedTile[] htile = tm.GetStaticTiles(2563, 489);
+            int mytileid2 = (htile[0].ID & 0x3FFF); // need a check, exception if ID is 0
+            //uonet.display("" + htile[0].ID + "___" + htile[1].ID);
 
             //mytile2 = 
 
@@ -408,6 +425,25 @@ namespace drkuo
         {
             uonet.displaywipe();
         }
+
+        private void btn_stopscript_Click(object sender, EventArgs e)
+        {
+           if(ScriptThread.IsAlive) { ScriptThread.Abort(); }
+
+        }
+        
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnSend_Click(object sender, EventArgs e)
+        {
+            String temp = tboxSend.Text;
+            uonet.Send(Packets.Send.Packets.say(temp));
+            tboxSend.Text = "";
+        }
+
 
          
     }

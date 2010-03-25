@@ -18,6 +18,13 @@ namespace drkuo
         West = 0x06,
         NorthWest = 0x07
     }
+    public enum FlagByte
+    {
+        Poisoned = 0x04,
+        Movable = 0x20, //If normally not
+        Warmode = 0x40,
+        Hidden = 0x80
+    }
             public enum Spell
     {
         CreateFood = 2,
@@ -88,6 +95,14 @@ namespace drkuo
             {
                 SelectObject = 0,
                 SelectXYZ = 1
+            }
+            public enum Facet
+            {
+                Fel = 0,
+                Tram = 1,
+                Ilsh = 2,
+                Malas = 3,
+                Tokuno = 4
             }
     public enum Skill
     {
