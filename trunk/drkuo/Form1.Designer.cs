@@ -51,6 +51,9 @@
             this.vartree = new System.Windows.Forms.TreeView();
             this.button3 = new System.Windows.Forms.Button();
             this.btn_clearlog = new System.Windows.Forms.Button();
+            this.btn_stopscript = new System.Windows.Forms.Button();
+            this.tboxSend = new System.Windows.Forms.TextBox();
+            this.btnSend = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -60,7 +63,7 @@
             this.txtOutput.Multiline = true;
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtOutput.Size = new System.Drawing.Size(709, 298);
+            this.txtOutput.Size = new System.Drawing.Size(709, 272);
             this.txtOutput.TabIndex = 0;
             // 
             // timer1
@@ -84,7 +87,7 @@
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(100, 20);
             this.txtUsername.TabIndex = 2;
-            this.txtUsername.Text = "infotech1";
+            this.txtUsername.Text = "calis";
             // 
             // txtPassword
             // 
@@ -100,7 +103,7 @@
             this.txtIP.Name = "txtIP";
             this.txtIP.Size = new System.Drawing.Size(100, 20);
             this.txtIP.TabIndex = 4;
-            this.txtIP.Text = "174.133.94.218";
+            this.txtIP.Text = "24.89.90.123";
             // 
             // txtPort
             // 
@@ -190,9 +193,9 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(174, 136);
+            this.button1.Location = new System.Drawing.Point(474, 136);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(102, 23);
+            this.button1.Size = new System.Drawing.Size(81, 23);
             this.button1.TabIndex = 14;
             this.button1.Text = "Run Script";
             this.button1.UseVisualStyleBackColor = true;
@@ -221,7 +224,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(317, 136);
+            this.button3.Location = new System.Drawing.Point(642, 110);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 17;
@@ -231,7 +234,7 @@
             // 
             // btn_clearlog
             // 
-            this.btn_clearlog.Location = new System.Drawing.Point(460, 136);
+            this.btn_clearlog.Location = new System.Drawing.Point(642, 136);
             this.btn_clearlog.Name = "btn_clearlog";
             this.btn_clearlog.Size = new System.Drawing.Size(75, 23);
             this.btn_clearlog.TabIndex = 18;
@@ -239,11 +242,42 @@
             this.btn_clearlog.UseVisualStyleBackColor = true;
             this.btn_clearlog.Click += new System.EventHandler(this.btn_clearlog_Click);
             // 
+            // btn_stopscript
+            // 
+            this.btn_stopscript.Location = new System.Drawing.Point(561, 136);
+            this.btn_stopscript.Name = "btn_stopscript";
+            this.btn_stopscript.Size = new System.Drawing.Size(75, 23);
+            this.btn_stopscript.TabIndex = 19;
+            this.btn_stopscript.Text = "Stop Script";
+            this.btn_stopscript.UseVisualStyleBackColor = true;
+            this.btn_stopscript.Click += new System.EventHandler(this.btn_stopscript_Click);
+            // 
+            // tboxSend
+            // 
+            this.tboxSend.Location = new System.Drawing.Point(12, 443);
+            this.tboxSend.Name = "tboxSend";
+            this.tboxSend.Size = new System.Drawing.Size(640, 20);
+            this.tboxSend.TabIndex = 20;
+            this.tboxSend.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // btnSend
+            // 
+            this.btnSend.Location = new System.Drawing.Point(658, 441);
+            this.btnSend.Name = "btnSend";
+            this.btnSend.Size = new System.Drawing.Size(59, 23);
+            this.btnSend.TabIndex = 21;
+            this.btnSend.Text = "Send";
+            this.btnSend.UseVisualStyleBackColor = true;
+            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
+            // 
             // drkGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(888, 475);
+            this.Controls.Add(this.btnSend);
+            this.Controls.Add(this.tboxSend);
+            this.Controls.Add(this.btn_stopscript);
             this.Controls.Add(this.btn_clearlog);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.vartree);
@@ -264,7 +298,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "drkGui";
-            this.Text = "Form1";
+            this.Text = "drkUO";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -296,6 +330,9 @@
         private System.Windows.Forms.TreeView vartree;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button btn_clearlog;
+        private System.Windows.Forms.Button btn_stopscript;
+        private System.Windows.Forms.TextBox tboxSend;
+        private System.Windows.Forms.Button btnSend;
     }
 }
 

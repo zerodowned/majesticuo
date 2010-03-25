@@ -61,7 +61,7 @@ namespace drkuo
     public int hue;
     public int BackpackID;
     public bool WarMode;
-    public int Facet;
+    public Facet Facet;
     public int Direction;
 
     }

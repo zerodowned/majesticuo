@@ -32,20 +32,30 @@ namespace drkuo
 {
     class uonetwork
     {
+        private Network.LoginEncryption LoginEncryption = new Network.LoginEncryption();
+        private Encryption.TwoFish Twofish = new Encryption.TwoFish();
+
         public ArrayList Journal = new ArrayList();
-        private Boolean bDebug = false;
+        private Boolean bDebug = true;
         public int seq = 0; // walk sequence
         private static StringList clioclist = new StringList("ENU");
         public uoplayer player = new uoplayer();
         public uoclientvars UOClient = new uoclientvars();
         public Hashtable GameObjects = new Hashtable();
         public Hashtable GumpList = new Hashtable();
+        public Boolean bLoginCrypt = false;
+        public Boolean bTwofishcrypt = false;
 
         public bool bConnected = false;
         public String myoutput = "";
         public string myvars = "";
 
         private byte[] key = new byte[4];
+        private uint loginkeyint = 0xFFFFFFFF;//167837955;//16820416;
+        private uint twofishkey = 0x7f000001;//167837955;//16820416;
+        private byte[] loginkey = new byte[4];
+        private string Version = "3.00.00";
+        
         private Boolean bDecompress = false;
         private Socket mysocket;
         private StateObject mystate;
@@ -67,6 +77,7 @@ namespace drkuo
         }
         public void main()
         {
+            
             mystate = new StateObject();
             // Entry point for network thread
             Connect();
@@ -234,6 +245,9 @@ namespace drkuo
                     case UOopcodes.SMSG_DropItemApproved:
                         handleDropItemApproved(packetinfo);
                         break;
+                    case UOopcodes.SMSG_LoginDenied:
+                        handleLoginDenied(packetinfo);
+                        break;
                     case UOopcodes.SMSG_FightOccuring:
                         handleFightOccuring(packetinfo);
                         break;
@@ -327,6 +341,12 @@ namespace drkuo
             
             catch
             { }
+        }
+
+        private void handleLoginDenied(byte[] packetinfo)
+        {
+            Dissconnect();
+            display("Connect failed");
         }
 
         private void handleTargetCursorCommands(byte[] packetinfo)
@@ -543,7 +563,8 @@ namespace drkuo
 
                     break;
                 case 8: //Cursor color to get map 
-                    player.Facet = packetinfo[5];
+                    player.Facet = (Facet)packetinfo[5];
+                    // 0 =  fel 1 = tram 2 = islh 3=malas 4=tokuno
                     break;
 
 
@@ -788,6 +809,7 @@ namespace drkuo
                 mysocket.Disconnect(true);
             }
             display("Dissconnected!");
+            
         }
         private void handleSetWeather(byte[] weather)
         {
@@ -1034,7 +1056,22 @@ namespace drkuo
             //mysocket.BeginSend(newstate, 0, Data.Length, Sockets.SocketFlags.None, EndSend, newstate);
             //mysocket.BeginSend(buffer,0,buffer.Length,SocketFlags.None,EndSend,newstate);
             if (!mysocket.Connected) { display("Dissconnected!!"); Dissconnect(); }
+           
+            if ((bLoginCrypt == true) & ((buffer[0] == 0x80) | (buffer[0] == 0xA0) | (buffer[0] == 0xD9)))
+            {
+                display("PreCrypt: " + BitConverter.ToString(buffer));
+                    buffer = LoginEncryption.clientDecrypt(buffer); 
+                    display("Login Crypted: " + BitConverter.ToString(buffer)); 
+            }
+            if ((bTwofishcrypt) & (buffer[0] != 0x7F)) // ox75 is the start of the key you use on reconnect. HACK should be linked to twofishkeyint
+            {
+                display("PreCrypt: " + BitConverter.ToString(buffer));
+               // Twofish.serverEncrypt(ref buffer, buffer.Length);
+                Twofish.clientEncryptData(ref buffer, buffer.Length);
+                display("TwoFished!" + BitConverter.ToString(buffer));
+            }
             mysocket.Send(buffer);
+            
             if(bDebug) { display("Sent >>" + BitConverter.ToString(buffer)); }
         }
         public void EndSend(IAsyncResult AR)
@@ -1067,7 +1104,15 @@ namespace drkuo
                 (byte)value};
             
         }
-        
+        public static byte[] uintToByteArray(uint value)
+        {
+            return new byte[] {
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
+                (byte)value};
+
+        }
          private void handleConnectToGameServer(byte[] buffer)
          {
              display("Handling Connect to Game Server");
@@ -1097,12 +1142,16 @@ namespace drkuo
              {
                  buffer[i + 35] = mypass[i];
              }
+             bTwofishcrypt = true;
+             twofishkey = (uint)((key[0] << 24) | (key[1] << 16) | (key[2] << 8) | (key[3]));
+             Twofish.GameEncryption(twofishkey);
+             Send(key);//Send(uintToByteArray(twofishkey));
              Send(buffer);
          }
          private void handleGameServerList()
          {
              display("Handling GameServerList");
-             byte[] mybyte = { 0xA0, 0x0, 0x0 };
+             byte[] mybyte = { 0xA0, 0x0, 0x0 }; 
              Send(mybyte);
          }
          public void Connect()
@@ -1122,8 +1171,10 @@ namespace drkuo
          }
          public void Login()
          {
-             byte[] firstbyte = { 0xf, 0x70, 0x0, 0x1 };
-             Send(firstbyte);
+             Send(uintToByteArray(loginkeyint));
+             LoginEncryption.init(loginkeyint);
+             
+             bLoginCrypt = true;
              byte[] loginpack = new byte[62];
              byte[] myuser = Encoding.ASCII.GetBytes(user);
              byte[] mypass = Encoding.ASCII.GetBytes(pass);
@@ -1138,6 +1189,7 @@ namespace drkuo
                  loginpack[i + 31] = (byte)mypass[i];
              }
              loginpack[61] = 0xFE;
+            
              Send(loginpack);
              //Sends user/pass and FE as the login key, can use any key
          }
@@ -1160,7 +1212,7 @@ namespace drkuo
                  charPacket[i + 69] = localAddress[i];
 
              Send(charPacket);
-             sendClient("2.0.3");
+             sendClient(Version);
          }
          private void sendClient(string p)
          {

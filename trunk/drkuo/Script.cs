@@ -6,7 +6,7 @@ using System.Threading;
 using System.Timers;
 using System.Collections;
 using System.Collections.Generic;
-
+using Ultima;
 namespace drkuo
 {
     class Script
@@ -34,7 +34,7 @@ namespace drkuo
             {
                 Events.UseObject(1076771726);
                 while (uonet.UOClient.TargCurs == 0) { Thread.Sleep(10); }
-                Events.TargetGround(2563, 489, 0, 0, 1339);
+                Events.TargetGround(2563, 489, 0, 0);
                 for (int x = 0; x < 40; x++)
                 {
                     Thread.Sleep(100);
@@ -42,7 +42,7 @@ namespace drkuo
                     if (temp.Contains("loosen")) { uonet.display("FoundLoosen"); break; }
                 }
                 //Thread.Sleep(3000);
-                uonet.Journal.con
+              
             }
             uonet.display(Events.IntToEUO(uonet.player.CharID));
 
@@ -143,10 +143,17 @@ namespace drkuo
 
             uonet.UOClient.TargCurs = 0;
         }
-        public void TargetGround(int X, int Y, int Z, int ID, int GroundTileType)
+        public void TargetGround(int X, int Y, int Z, int ID)
         {
             //ID should be 00
-            uonet.Send(uonet.ClickTargetPacket(ID, X, Y, Z, GroundTileType, CursorTarget.SelectXYZ));
+            // get ground type from x/y
+            //if ((int)uonet.player.Facet <= 1) need a check to set right map size for tokuno/malas.
+            // This will only work in britannia
+                Ultima.TileMatrix tm = new TileMatrix(0, 0, 6144, 4096);
+                HuedTile[] htile = tm.GetStaticTiles(X, Y);
+                int mytileid2 = (htile[0].ID & 0x3FFF);
+
+            uonet.Send(uonet.ClickTargetPacket(ID, X, Y, Z, mytileid2, CursorTarget.SelectXYZ));
 
             uonet.UOClient.TargCurs = 0;
         }
