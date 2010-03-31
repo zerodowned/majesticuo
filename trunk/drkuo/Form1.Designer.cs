@@ -95,7 +95,7 @@
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(100, 20);
             this.txtPassword.TabIndex = 3;
-            this.txtPassword.Text = "junk2";
+            this.txtPassword.Text = "pass";
             // 
             // txtIP
             // 

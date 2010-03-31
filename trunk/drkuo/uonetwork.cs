@@ -1151,7 +1151,7 @@ namespace drkuo
          private void handleGameServerList()
          {
              display("Handling GameServerList");
-             byte[] mybyte = { 0xA0, 0x0, 0x0 }; 
+             byte[] mybyte = { 0xA0, 0x0, 0x01 }; 
              Send(mybyte);
          }
          public void Connect()
@@ -1188,7 +1188,7 @@ namespace drkuo
              {
                  loginpack[i + 31] = (byte)mypass[i];
              }
-             loginpack[61] = 0xFE;
+             loginpack[61] = 0xFF;
             
              Send(loginpack);
              //Sends user/pass and FE as the login key, can use any key
