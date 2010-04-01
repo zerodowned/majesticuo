@@ -1,7 +1,8 @@
 Call init once at the start of your connection, then First three packets sent are encrypted via the encrypt routine.
 
 
-{{{class LoginEncryption
+{{{
+class LoginEncryption
     {
         // Client 3.0.0x Keys
         public uint CurrentKey0;
