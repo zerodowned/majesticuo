@@ -32,9 +32,8 @@ namespace drkuo
 {
     class uonetwork
     {
-        private Network.LoginEncryption LoginEncryption = new Network.LoginEncryption();
+        private Network.Encryption LoginEncryption = new Network.Encryption();
         private Encryption.TwoFish Twofish = new Encryption.TwoFish();
-
         public ArrayList Journal = new ArrayList();
         private Boolean bDebug = true;
         public int seq = 0; // walk sequence
@@ -86,24 +85,37 @@ namespace drkuo
             mysocket.DontFragment = true;
             
             //NetworkStream stream = new NetworkStream(mysocket);
-            while (mysocket.Connected)
+            //while (mysocket.Connected)
+            while (bConnected)
             {
-                Thread.Sleep(1);
+               // while (bReceivewait)
+               // {
+                 //   Thread.Sleep(25);
+               // }
+                Thread.Sleep(5);
                 //if (stream.DataAvailable)
                 //{
                 //    StateObject state = new StateObject();
                 //    state.buffer = new byte[2048];
                //    stream.BeginRead(state.buffer, 0, state.buffer.Length, PacketReceived,state);
                // }
-                if (mysocket.Available > 0)
+                try
                 {
-                    int mytempavail = mysocket.Available;
-                    mystate.buffer = new byte[mytempavail];
-                    mystate.decomp = new byte[mytempavail];
-                    mystate.avail = mytempavail;
-                    //display("data avail");
-                    // line below used to use mysocket.Available, think this is safer
-                    mysocket.BeginReceive(mystate.buffer, 0, mystate.avail, SocketFlags.None, PacketReceived, mystate);
+                    if (mysocket.Available > 0)
+                    {
+                        int mytempavail = mysocket.Available;
+                        mystate.buffer = new byte[mytempavail];
+                        mystate.decomp = new byte[mytempavail];
+                        mystate.avail = mytempavail;
+                        //display("data avail");
+                        // line below used to use mysocket.Available, think this is safer
+                        mysocket.BeginReceive(mystate.buffer, 0, mystate.avail, SocketFlags.None, PacketReceived, mystate);
+                    }
+                }
+                catch {
+                    
+                        // bReceivewait = false;
+                   
                 }
             }
             //display("Connection Lost");
@@ -121,16 +133,19 @@ namespace drkuo
             // repeat
             while (incomingpackets.Count > 0)
             {
+                
                 if (bDecompress)
                 {
+                    
                     HuffmanDecompression huff = new HuffmanDecompression();
            
                     outbuffer = new byte[incomingpackets.Count];
                     huffmanobject myhuf = new huffmanobject();
-                    myhuf.buffer = (byte[])incomingpackets.ToArray(typeof(byte));
-                    myhuf.src_size = incomingpackets.Count;
-                    myhuf.out_size = 0;
-                    //myhuf.output = BinaryNode.Decompress(myhuf.buffer);
+                        myhuf.buffer = (byte[])incomingpackets.ToArray(typeof(byte));
+                        myhuf.src_size = incomingpackets.Count;
+                        myhuf.out_size = 0;
+
+                        //myhuf.output = BinaryNode.Decompress(myhuf.buffer);
                     myhuf = BinaryNode.drkDecompress(myhuf);
                     outbuffer = myhuf.output;
                     //myhuf.out_size = outbuffer.Length;
@@ -151,6 +166,12 @@ namespace drkuo
                         outbuffer = newstate.buffer;
                         incomingpackets.Clear();
                     }
+
+                if (bTwofishcrypt)
+                {
+                    Twofish.serverDecrypt(ref outbuffer, outbuffer.Length);
+                    display("Decrypting incoming");
+                }    
 
                     handlePackets(outbuffer);
                 }
@@ -1052,7 +1073,18 @@ namespace drkuo
         }
         public void Send(byte[] buffer)
         {
-        //    StateObject newstate = new StateObject();
+            if (buffer[0] == 0x7F) //HACK IF we change the Twofish key this needs to be changed
+            {
+                mysocket.Close();
+                mysocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                IPAddress serverip = IPAddress.Parse(ip);
+                mysocket.Connect(new IPEndPoint(serverip, port));
+                mysocket.ReceiveBufferSize = 32768;
+                display("Reconnect!");
+                //GameServerLogin();
+            }
+            
+                //    StateObject newstate = new StateObject();
             //mysocket.BeginSend(newstate, 0, Data.Length, Sockets.SocketFlags.None, EndSend, newstate);
             //mysocket.BeginSend(buffer,0,buffer.Length,SocketFlags.None,EndSend,newstate);
             if (!mysocket.Connected) { display("Dissconnected!!"); Dissconnect(); }
@@ -1060,6 +1092,8 @@ namespace drkuo
             if ((bLoginCrypt == true) & ((buffer[0] == 0x80) | (buffer[0] == 0xA0) | (buffer[0] == 0xD9)))
             {
                 display("PreCrypt: " + BitConverter.ToString(buffer));
+                UOEncryption.LoginCryptObj loginobj = new UOEncryption.LoginCryptObj();
+                
                     buffer = LoginEncryption.clientDecrypt(buffer); 
                     display("Login Crypted: " + BitConverter.ToString(buffer)); 
             }
@@ -1125,6 +1159,7 @@ namespace drkuo
 
          private void GameServerLogin()
          {
+
              byte[] buffer = new byte[65];
              buffer[0] = 0x91;
              buffer[1] = key[0];
@@ -1195,6 +1230,7 @@ namespace drkuo
          }
          public void chooseChar(String character, int slot)
          {
+
              byte[] charPacket = new byte[73];
              byte[] charName = GetBytes(character);
              charPacket[0] = UOopcodes.CMSG_LoginChar;
