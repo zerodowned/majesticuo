@@ -58,7 +58,7 @@ private Encryption.TwofishEncryption engine;
 			recvPos = 0;
 		}
 	        
-		public void serverEncrypt(ref byte[] buffer, int length) 
+		public void serverDecrypt(ref byte[] buffer, int length) 
 		{
 			byte[] packet = new byte[length];
 			for ( int i = 0; i < length; ++i ) 

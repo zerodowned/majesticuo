@@ -13,7 +13,7 @@ using System.Text;
 
 namespace drkuo.Network
 {
-    class LoginEncryption
+    class Encryption
     {
         // Client 3.0.0x Keys
         public uint CurrentKey0;

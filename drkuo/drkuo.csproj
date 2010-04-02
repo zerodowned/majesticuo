@@ -71,6 +71,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Downloads\UltimaSDK-release\bin\Release\Ultima.dll</HintPath>
     </Reference>
+    <Reference Include="UOEncryption.NET">
+      <HintPath>..\..\..\..\..\Desktop\UO\UOPhoniex\Phoenix\UOEncryption.NET\obj\Release\UOEncryption.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enum.cs" />
@@ -82,7 +85,7 @@
     </Compile>
     <Compile Include="Huffman.cs" />
     <Compile Include="HuffmanDecompression.cs" />
-    <Compile Include="Network\LoginEncryption.cs" />
+    <Compile Include="Network\Encryption.cs" />
     <Compile Include="Network\TwoFish.cs" />
     <Compile Include="Network\TwofishBase.cs" />
     <Compile Include="Network\TwofishEncryption.cs" />
